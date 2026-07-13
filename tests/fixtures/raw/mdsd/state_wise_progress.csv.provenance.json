@@ -1,0 +1,14 @@
+{
+  "dataset_name": "MD-SD state-wise project progress",
+  "organization": "Sports Authority of India / MD-SD",
+  "source_page_url": "https://mdsd.kheloindia.gov.in/state-wise-progress",
+  "download_url": "manual_export_fixture",
+  "retrieved_at_utc": "2026-07-13T00:00:00Z",
+  "source_published_or_updated_at": "2026-07-13",
+  "geographic_grain": "state_ut",
+  "time_coverage": "2024-25 snapshot",
+  "license_or_terms_note": "Official public dashboard export; fixture excerpt for tests",
+  "retrieval_method": "manual_official_download",
+  "notes": "Redacted minimal fixture derived from official MD-SD table layout",
+  "sha256": "334751a1ae560664ea5a8c77907841cc13b42d4de901b4ed45f1e3c76505b3e2"
+}

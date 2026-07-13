@@ -43,11 +43,59 @@ CENSUS_YEAR: int = 2011
 CENSUS_API_BASE_URL: str = "http://digital-library.census.ihsn.org/index.php/api/tables/data"
 CENSUS_TABLES_URL: str = "https://censusindia.gov.in/census.website/data/census-tables"
 
-# Public data source names
+# Legacy optional data.gov.in client constants (not used by the manual raw pipeline)
 KHELO_INDIA_MEDAL_TALLY_RESOURCE: str = "khelo-india-medal-tally"
 KHELO_INDIA_BUDGET_RESOURCE: str = "khelo-india-budget-allocation"
 KHELO_INDIA_RAW_PREFIX: str = "raw/khelo_india"
 FIFA_AFC_RAW_PREFIX: str = "raw/fifa_afc_reports"
+
+# Public data source references (official pages; not fabricated API resource IDs)
+MDSD_SOURCE_PAGE_URL = "https://mdsd.kheloindia.gov.in/"
+KHELO_INDIA_FINANCIAL_ASSISTANCE_SOURCE_URL = (
+    "https://www.data.gov.in/resource/"
+    "stateuts-wise-details-financial-assistance-provided-under-khelo-india-scheme-and-national"
+)
+CENSUS_PCA_SOURCE_URL = (
+    "https://www.data.gov.in/catalog/primary-census-abstract-2011-india-and-states-0"
+)
+
+# Local paths for reproducibility (no AWS required)
+PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
+DATA_DIR: Path = PROJECT_ROOT / "data"
+RAW_DATA_DIR: Path = DATA_DIR / "raw"
+PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
+RESULTS_DATA_DIR: Path = DATA_DIR / "results"
+FIXTURES_DIR: Path = PROJECT_ROOT / "tests" / "fixtures"
+
+# Required manually downloaded raw inputs for local reproduction
+RAW_MSDS_DIR = RAW_DATA_DIR / "mdsd"
+RAW_KHELO_INDIA_DIR = RAW_DATA_DIR / "khelo_india"
+RAW_CENSUS_DIR = RAW_DATA_DIR / "census"
+RAW_MINISTRY_REPORTS_DIR = RAW_DATA_DIR / "ministry_reports"
+
+REQUIRED_RAW_FILES: dict[str, dict[str, str]] = {
+    "mdsd/state_wise_progress.csv": {
+        "role": "MD-SD state/UT project progress counts",
+        "source_page_url": f"{MDSD_SOURCE_PAGE_URL}state-wise-progress",
+    },
+    "mdsd/grantee_amounts.csv": {
+        "role": "MD-SD amount sanctioned and released by state/UT",
+        "source_page_url": f"{MDSD_SOURCE_PAGE_URL}gratee-type-wise-progress",
+    },
+    "khelo_india/financial_assistance.csv": {
+        "role": "State/UT financial assistance under Khelo India",
+        "source_page_url": KHELO_INDIA_FINANCIAL_ASSISTANCE_SOURCE_URL,
+    },
+    "census/state_population_2011.csv": {
+        "role": "Census 2011 state/UT denominator with explicit definition",
+        "source_page_url": CENSUS_PCA_SOURCE_URL,
+    },
+}
+
+INFRASTRUCTURE_CAUTION = (
+    "State/UT public sports infrastructure and investment descriptive analytics; "
+    "not football-specific; Census 2011 denominators are stale where paired with later years."
+)
 
 # Causal regression defaults (literature baseline: OLS with fixed effects for public panel data)
 REGRESSION_MIN_OBSERVATIONS: int = 10  # assumption: minimum rows for stable fit
@@ -67,14 +115,6 @@ RAW_PREFIX: str = "raw"
 PROCESSED_PREFIX: str = "processed"
 RESULTS_PREFIX: str = "results"
 RAW_SOURCE_NAME: str = "investment_outcomes"
-
-# Local paths for reproducibility (no AWS required)
-PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
-DATA_DIR: Path = PROJECT_ROOT / "data"
-RAW_DATA_DIR: Path = DATA_DIR / "raw"
-PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
-RESULTS_DATA_DIR: Path = DATA_DIR / "results"
-FIXTURES_DIR: Path = PROJECT_ROOT / "tests" / "fixtures"
 
 
 class Settings(BaseModel):

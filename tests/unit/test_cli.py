@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.conftest import raw_fixture_root
 
 from india_football_funnel.cli import reproduce, simulate
 from india_football_funnel.config import Settings, get_settings
@@ -28,31 +29,44 @@ def test_unknown_scenario_raises() -> None:
 
 
 def test_reproduce_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    raw_dir = tmp_path / "raw"
+    raw_dir = raw_fixture_root()
     processed_dir = tmp_path / "processed"
     results_dir = tmp_path / "results"
     for target in (
         "india_football_funnel.cli",
         "india_football_funnel.config",
-        "india_football_funnel.data.loader",
     ):
         monkeypatch.setattr(f"{target}.RAW_DATA_DIR", raw_dir)
         monkeypatch.setattr(f"{target}.PROCESSED_DATA_DIR", processed_dir)
         monkeypatch.setattr(f"{target}.RESULTS_DATA_DIR", results_dir)
+    monkeypatch.setattr("india_football_funnel.data.infrastructure_pipeline.RAW_DATA_DIR", raw_dir)
     monkeypatch.setattr(
-        "india_football_funnel.simulation.run_simulation.RESULTS_DATA_DIR",
-        results_dir,
+        "india_football_funnel.data.infrastructure_pipeline.PROCESSED_DATA_DIR",
+        processed_dir,
     )
 
     reproduce()
 
-    assert (raw_dir / "investment_outcomes.csv").exists()
-    assert (processed_dir / "investment_outcomes.parquet").exists()
-    assert (processed_dir / "participation_by_state.csv").exists()
-    assert (results_dir / "analysis" / "funnel_summaries.json").exists()
-    assert (results_dir / "analysis" / "regression_results.json").exists()
-    assert (results_dir / "baseline" / "simulation_summary.json").exists()
-    assert (results_dir / "top_quartile_budget" / "simulation_summary.json").exists()
+    assert (processed_dir / "public_sports_infrastructure.parquet").exists()
+    assert (processed_dir / "infrastructure_by_state.csv").exists()
+    assert (results_dir / "analysis" / "infrastructure_summaries.json").exists()
+    assert (results_dir / "run_manifest.json").exists()
+
+    manifest = json.loads((results_dir / "run_manifest.json").read_text(encoding="utf-8"))
+    assert manifest["row_count"] == 10
+    assert "not football-specific" in manifest["caveat"]
+
+
+def test_reproduce_fails_without_required_raw_files(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    empty_raw = tmp_path / "raw"
+    empty_raw.mkdir()
+    monkeypatch.setattr("india_football_funnel.cli.RAW_DATA_DIR", empty_raw)
+
+    with pytest.raises(FileNotFoundError, match="Required official raw inputs are missing"):
+        reproduce()
 
 
 def test_simulate_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -87,6 +101,8 @@ def test_load_simulation_summary(tmp_path: Path) -> None:
                 ],
                 "final_medals_mean": 6.0,
                 "final_medals_std": 1.0,
+                "assumption_based": True,
+                "uncalibrated": True,
             }
         ),
         encoding="utf-8",

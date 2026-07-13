@@ -1,12 +1,55 @@
 # Data Provenance
 
-| Source | URL | Access method | License/terms checked | Last verified | Known limitations |
+## Primary manual official inputs (iff-reproduce)
+
+These sources power the default reproduction pipeline. Each file must exist locally with a
+verified sibling `.provenance.json` (SHA-256, source URLs, retrieval timestamp).
+
+| Dataset | Organization | Source page | Geographic grain | Retrieval | Limitations |
 |---|---|---|---|---|---|
-| Census of India 2011 district tables | https://censusindia.gov.in/census.website/data/api/documentation | API primary via `census_client.py`; Excel table fallback from Census tables page | Public government statistical data; usage must cite Census 2011 | 2026-07-12 | 2011 is the latest complete Census. Every downstream row carries `census_year: 2011`. |
-| data.gov.in Khelo India medal tally | https://www.data.gov.in/ | `datagovindia` package with `DATAGOVINDIA_API_KEY`; raw cached to `raw/khelo_india/` | Requires free API key; no key is committed | 2026-07-12 | Dataset discovery/resource IDs can change on data.gov.in. CI mocks API calls. |
-| data.gov.in Department of Sports budget allocation | https://www.data.gov.in/ | `datagovindia` package with sector/resource search; raw cached before processing | Requires free API key; no key is committed | 2026-07-12 | Budget categories may not map perfectly to district-level spend. |
-| Khelo India centres / State Centre of Excellence official documents | https://kheloindia.gov.in/ and https://yas.gov.in/ | Official PDFs/annual reports only; no secondary-source substitution | Official-source only policy | 2026-07-12 | No confirmed single structured public list in this audit. Facility data is marked `not_currently_available` until verified. |
-| FIFA Global Talent Development India report | https://inside.fifa.com/official-documents | Manual PDF ingestion via `fifa_afc_reports.py`; every row stores `source_pdf` and `source_page` | Public official FIFA report citation required | 2026-07-12 | Structured extraction only for values directly verifiable in the PDF. |
-| AFC technical reports | https://assets.the-afc.com/downloads/technical-reports/ | Manual PDF ingestion via `fifa_afc_reports.py`; every row stores `source_pdf` and `source_page` | Public official AFC report citation required | 2026-07-12 | Tournament coverage varies by report and year. |
-| Kaggle Indian Super League Dataset | https://www.kaggle.com/ | Not used in v1 until license and last-updated date are manually verified | Unresolved due to Kaggle bot-check wall | 2026-07-12 | `isl_data.py` blocks ingestion if license metadata is missing or restrictive. |
-| AIFF CRS/CMS/Academy Accreditation portals | https://www.the-aiff.com/ | Not used | Login-gated; not legally scrapable; minor-data risk | 2026-07-12 | Quarantined as unavailable; see `src/india_football_funnel/data/scrapers/_deprecated_unavailable/README.md`. |
+| MD-SD state-wise project progress | Sports Authority of India / MD-SD | https://mdsd.kheloindia.gov.in/state-wise-progress | state_ut | Manual official download | Beta dashboard; no automated scraping. Reporting period from provenance metadata. |
+| MD-SD grantee amounts sanctioned/released | Sports Authority of India / MD-SD | https://mdsd.kheloindia.gov.in/gratee-type-wise-progress | state_ut | Manual official download | Monetary `source_unit` must be documented (`crore` or `inr`). |
+| Khelo India state/UT financial assistance | Ministry of Youth Affairs and Sports | https://www.data.gov.in/resource/stateuts-wise-details-financial-assistance-provided-under-khelo-india-scheme-and-national | state_ut | Manual official download | Use the exact resource/download URL in provenance; do not invent resource IDs. |
+| Census 2011 state/UT denominator | Registrar General & Census Commissioner | https://www.data.gov.in/catalog/primary-census-abstract-2011-india-and-states-0 | state_ut | Manual official download | Denominator definition is explicit per row; 2011 vintage flagged stale when paired with later years. |
+
+Full inventory: [data_inventory.md](data_inventory.md).
+
+## Optional national-context sources
+
+| Source | URL | Use |
+|---|---|---|
+| Ministry annual reports | https://yas.nic.in/documents/annual-reports | Programme context / national total cross-check |
+| Ministry budget / DDG documents | https://yas.nic.in/documents/budgets | National investment context |
+| Khelo India operational guidelines | https://yas.nic.in/sports/khelo-india-national-programme-development-sports-0 | Scheme definitions |
+
+## Legacy / optional API clients (not used by default reproduce)
+
+| Source | URL | Access method | Notes |
+|---|---|---|---|
+| data.gov.in Khelo India medal tally | https://www.data.gov.in/ | `datagovindia` + `DATAGOVINDIA_API_KEY` | Legacy client; CI mocks API calls |
+| data.gov.in Department of Sports budget | https://www.data.gov.in/ | `datagovindia` package | Legacy optional ingestion |
+| Census API / tables | https://censusindia.gov.in/ | `census_client.py` | Not used by manual primary reproduce path |
+
+## Unavailable / quarantined sources
+
+| Source | Status | Reason |
+|---|---|---|
+| AIFF CRS/CMS / Academy Accreditation | Not used | Login-gated; no public API; minor-data risk |
+| dashboard.kheloindia.gov.in live exports | Not scraped | Operator must supply downloaded artifacts |
+| Kaggle ISL dataset | Blocked pending license verification | `isl_data.py` enforces license metadata |
+
+## PDF / report ingestion (unchanged)
+
+| Source | URL | Module |
+|---|---|---|
+| FIFA Global Talent Development India report | https://inside.fifa.com/official-documents | `fifa_afc_reports.py` |
+| AFC technical reports | https://assets.the-afc.com/downloads/technical-reports/ | `fifa_afc_reports.py` |
+
+## Output traceability
+
+Processed infrastructure rows and `data/results/run_manifest.json` include:
+
+- Source filename(s) and source page URL
+- `retrieved_at_utc` from provenance
+- `provenance_sha256` for each contributing raw file
+- Explicit caveat: state/UT public sports infrastructure descriptive analytics; not football-specific

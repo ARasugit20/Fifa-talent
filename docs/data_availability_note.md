@@ -1,23 +1,39 @@
 # Data Availability Note
 
-The original project design aimed to measure an individual player registration funnel:
-grassroots → academy → semipro → professional → national team.
+## Scope
 
-That design depended on AIFF CRS/CMS and Academy Accreditation data. A source audit found
-those systems are login-gated, have no public API or bulk export, and include data about
-minors. The project therefore does **not** scrape or approximate AIFF CRS/CMS records.
+The primary `iff-reproduce` pipeline now produces **state/UT public sports infrastructure and
+investment descriptive analytics**. It is **not** football-player analytics and must not be
+read as football-specific performance measurement.
 
-The v1 public-data funnel is now:
+## What is available
 
-1. Public sports infrastructure investment
-2. Youth population denominator from Census 2011
-3. Khelo India participation / medal-tally participation proxies
-4. Competitive outcomes such as medals and verified tournament results
+| Category | Status | Notes |
+|---|---|---|
+| MD-SD state/UT project progress & amounts | **Manual official download required** | Place exports in `data/raw/mdsd/` with provenance JSON. Do not scrape the beta dashboard. |
+| Khelo India state/UT financial assistance | **Manual official download required** | Typically from data.gov.in resource pages; record the exact download URL in provenance. |
+| Census 2011 state/UT denominators | **Manual official download required** | Denominator definition must be explicit in the CSV (e.g. total population 2011). A 10–17 youth band is **not** assumed unless the supplied file documents it. |
+| Ministry DDG / annual reports | Optional context | National-level validation only; not a state-level substitute. |
+| Legacy investment/outcome fixture CSV | Test/legacy path only | `sample_investment_outcomes.csv` supports associative regression and simulation tests; not used by default `iff-reproduce`. |
 
-This changes the outcome from "player retention to professional/national-team status" to
-"public investment and facility exposure as predictors of participation and competitive
-outcomes." The regression and simulation machinery remains structurally similar, but the
-grain is state/district-year aggregate data rather than individual player records.
+## What is not available
 
-The README headline is intentionally marked in progress until the new public-source pipeline
-runs against live data.gov.in and Census inputs with a user-provided API key.
+- **AIFF CRS/CMS / Academy Accreditation player records** — login-gated, no public bulk export, minor-data risk. Not scraped or approximated.
+- **Live dashboard scraping** — `mdsd.kheloindia.gov.in` and `dashboard.kheloindia.gov.in` are reference pages only; the pipeline reads local files supplied by the operator.
+- **Automated data.gov.in fetch in reproduce** — API clients remain for optional/legacy workflows; `iff-reproduce` does not call them.
+
+## Analytic posture
+
+- **Associative regression** (`analysis/associative_regression.py`) — exploratory associations only; not causal inference. Not run by default `iff-reproduce`.
+- **Simulation** (`simulate` / `iff-simulate`) — illustrative, assumption-based, **uncalibrated** scenarios; not forecasts.
+- **Census denominators** — 2011 vintage; flagged `denominator_is_stale` when joined to later infrastructure reporting periods.
+
+## Running locally
+
+1. Download official files listed in [data_inventory.md](data_inventory.md).
+2. Add sibling `.provenance.json` files with SHA-256 checksums.
+3. Run `make reproduce`.
+
+CI uses redacted fixtures under `tests/fixtures/raw/`; it does **not** prove live official retrieval.
+
+See also: [data_provenance.md](data_provenance.md) · [data_inventory.md](data_inventory.md)

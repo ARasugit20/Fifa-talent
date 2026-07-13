@@ -1,0 +1,14 @@
+{
+  "dataset_name": "MD-SD grantee amount sanctioned/released",
+  "organization": "Sports Authority of India / MD-SD",
+  "source_page_url": "https://mdsd.kheloindia.gov.in/gratee-type-wise-progress",
+  "download_url": "manual_export_fixture",
+  "retrieved_at_utc": "2026-07-13T00:00:00Z",
+  "source_published_or_updated_at": "2026-07-13",
+  "geographic_grain": "state_ut",
+  "time_coverage": "2024-25 snapshot",
+  "license_or_terms_note": "Official public dashboard export; fixture excerpt for tests",
+  "retrieval_method": "manual_official_download",
+  "notes": "Illustrative fixture values in crore for parser tests",
+  "sha256": "1a78d3786da778c83fd9f24ffbd459e57bb057164b0a9b8c448d2267bd0b905e"
+}

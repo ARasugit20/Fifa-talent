@@ -1,0 +1,14 @@
+{
+  "dataset_name": "Census 2011 state/UT total population",
+  "organization": "Office of the Registrar General and Census Commissioner, India",
+  "source_page_url": "https://www.data.gov.in/catalog/primary-census-abstract-2011-india-and-states-0",
+  "download_url": "manual_export_fixture",
+  "retrieved_at_utc": "2026-07-13T00:00:00Z",
+  "source_published_or_updated_at": "2011",
+  "geographic_grain": "state_ut",
+  "time_coverage": "2011",
+  "license_or_terms_note": "NDSAP open government statistical data",
+  "retrieval_method": "manual_official_download",
+  "notes": "Denominator is total_population_2011_state_ut, not youth 10-17",
+  "sha256": "fe4c2bd6e594e34cd9ed6febdafad80913001c40837e06faf8dc25eb789497b3"
+}

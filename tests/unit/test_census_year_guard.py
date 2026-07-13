@@ -38,21 +38,7 @@ def test_investment_observation_rejects_wrong_census_year() -> None:
         )
 
 
-def test_pipeline_builder_preserves_census_year(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-    raw_dir = tmp_path / "raw"
-    processed_dir = tmp_path / "processed"
-    for target in (
-        "india_football_funnel.config",
-        "india_football_funnel.data.pipeline",
-        "india_football_funnel.data.loader",
-    ):
-        monkeypatch.setattr(f"{target}.RAW_DATA_DIR", raw_dir)
-    for target in (
-        "india_football_funnel.config",
-        "india_football_funnel.data.loader",
-    ):
-        monkeypatch.setattr(f"{target}.PROCESSED_DATA_DIR", processed_dir)
-
-    frame = build_processed_investment_frame()
+def test_pipeline_builder_preserves_census_year() -> None:
+    frame = build_processed_investment_frame(fixture_path("sample_investment_outcomes.csv"))
     assert isinstance(frame, pd.DataFrame)
     assert (frame["census_year"] == CENSUS_YEAR).all()

@@ -1,10 +1,10 @@
 # India Football Funnel
 
-Real-data migration in progress: this project now measures how public sports investment,
-Census youth-population denominators, Khelo India participation, and competitive outcomes
-relate at state/district-year grain. The earlier synthetic 99% player-funnel headline has
-been removed because AIFF CRS/CMS player-level data is not publicly accessible. See
-[Data Availability Note](docs/data_availability_note.md).
+Real-data migration: `iff-reproduce` now builds **state/UT public sports infrastructure**
+descriptive analytics from manually downloaded official files with provenance validation.
+Legacy associative regression and uncalibrated simulation remain available via separate
+commands and test fixtures. AIFF CRS/CMS player-level data is not publicly accessible. See
+[Data Availability Note](docs/data_availability_note.md) and [Data Inventory](docs/data_inventory.md).
 
 ## Local Setup
 
@@ -52,7 +52,7 @@ Verified public data
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 49 passing (unit + integration) |
+| Tests | 69 passing (unit + integration) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)

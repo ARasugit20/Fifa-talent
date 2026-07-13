@@ -1,0 +1,14 @@
+{
+  "dataset_name": "Khelo India state/UT financial assistance",
+  "organization": "Ministry of Youth Affairs and Sports",
+  "source_page_url": "https://www.data.gov.in/resource/stateuts-wise-details-financial-assistance-provided-under-khelo-india-scheme-and-national",
+  "download_url": "manual_export_fixture",
+  "retrieved_at_utc": "2026-07-13T00:00:00Z",
+  "source_published_or_updated_at": "2022-12-08",
+  "geographic_grain": "state_ut",
+  "time_coverage": "2016-17 to 2021-22",
+  "license_or_terms_note": "Official parliamentary-answer derived open data; fixture excerpt",
+  "retrieval_method": "manual_official_download",
+  "notes": "Fixture layout mirrors official state/UT assistance table",
+  "sha256": "e591fea633475141ad350cc47013bb1ef927113edc06eb4547e90222b5ad07de"
+}

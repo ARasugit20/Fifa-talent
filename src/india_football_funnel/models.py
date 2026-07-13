@@ -161,3 +161,106 @@ class PdfExtractedMetric(BaseModel):
     source_pdf: str
     source_page: int = Field(ge=1)
     extraction_note: str
+
+
+class MdsdProjectProgressRecord(BaseModel):
+    """State/UT infrastructure project status from an MD-SD manual export."""
+
+    canonical_state_ut: str
+    reporting_period: str
+    projects_to_be_started: int = Field(ge=0)
+    projects_under_progress: int = Field(ge=0)
+    projects_completed: int = Field(ge=0)
+    projects_total: int = Field(ge=0)
+    source_file: str
+    source_url: str
+    retrieved_at_utc: str
+    provenance_sha256: str
+
+
+class MdsdSanctionRecord(BaseModel):
+    """State/UT sanctioned/released amounts from an MD-SD manual export."""
+
+    canonical_state_ut: str
+    reporting_period: str
+    amount_sanctioned_inr: float = Field(ge=0.0)
+    amount_released_inr: float = Field(ge=0.0)
+    source_unit: str
+    source_file: str
+    source_url: str
+    retrieved_at_utc: str
+    provenance_sha256: str
+
+
+class KheloIndiaAssistanceRecord(BaseModel):
+    """State/UT financial assistance from a Khelo India manual export."""
+
+    canonical_state_ut: str
+    reporting_period: str
+    financial_assistance_inr: float = Field(ge=0.0)
+    source_unit: str
+    source_file: str
+    source_url: str
+    retrieved_at_utc: str
+    provenance_sha256: str
+
+
+class CensusDenominatorRecord(BaseModel):
+    """Census 2011 denominator supplied with an explicit definition."""
+
+    canonical_state_ut: str
+    denominator_value: int = Field(ge=0)
+    denominator_definition: str
+    denominator_year: int
+    denominator_is_stale: bool = True
+    source_file: str
+    source_url: str
+    retrieved_at_utc: str
+    provenance_sha256: str
+
+
+class PublicSportsInfrastructureRecord(BaseModel):
+    """Joined state/UT public sports infrastructure descriptive record."""
+
+    canonical_state_ut: str
+    reporting_period: str
+    projects_to_be_started: int = Field(ge=0)
+    projects_under_progress: int = Field(ge=0)
+    projects_completed: int = Field(ge=0)
+    projects_total: int = Field(ge=0)
+    amount_sanctioned_inr: float = Field(ge=0.0)
+    amount_released_inr: float = Field(ge=0.0)
+    financial_assistance_inr: float = Field(ge=0.0)
+    denominator_value: int = Field(ge=0)
+    denominator_definition: str
+    denominator_year: int
+    denominator_is_stale: bool = True
+    source_file: str
+    source_url: str
+    retrieved_at_utc: str
+    provenance_sha256: str
+
+
+class InfrastructureSummary(BaseModel):
+    """Descriptive infrastructure metrics for one state/UT."""
+
+    canonical_state_ut: str
+    reporting_period: str
+    projects_total: int
+    completion_rate: float
+    amount_released_per_capita: float
+    financial_assistance_per_capita: float
+    denominator_definition: str
+    denominator_year: int
+    denominator_is_stale: bool
+
+
+class RunManifest(BaseModel):
+    """Reproducibility manifest for a local infrastructure pipeline run."""
+
+    caveat: str
+    row_count: int
+    reporting_periods: list[str]
+    source_hashes: dict[str, str]
+    state_reconciliation: dict[str, list[str] | dict[str, str]]
+    processed_output: str
