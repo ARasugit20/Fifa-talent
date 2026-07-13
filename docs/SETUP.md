@@ -13,6 +13,7 @@ This guide covers zero-cost local development for the India Football Funnel proj
 make setup
 make test
 make reproduce
+make simulate   # baseline simulation only (faster than reproduce)
 ```
 
 `make setup` creates a virtual environment, installs dev dependencies, and registers pre-commit hooks.

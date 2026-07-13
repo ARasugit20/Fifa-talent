@@ -52,7 +52,7 @@ Verified public data
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 48 passing (unit + integration) |
+| Tests | 49 passing (unit + integration) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)
