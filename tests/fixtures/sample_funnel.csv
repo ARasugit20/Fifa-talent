@@ -1,0 +1,11 @@
+state,district,year,census_year,youth_population_10_17,budget_allocation_inr,khelo_india_centres,participation_count,medals,tournament_results_score,facility_data_status,source
+Maharashtra,Mumbai,2023,2011,1100000,180000000,,14000,55,55,not_currently_available,fixture
+Kerala,Kochi,2023,2011,430000,84000000,,6800,31,31,not_currently_available,fixture
+West Bengal,Kolkata,2023,2011,720000,96000000,,8200,29,29,not_currently_available,fixture
+Karnataka,Bengaluru,2023,2011,860000,130000000,,10500,41,41,not_currently_available,fixture
+Punjab,Ludhiana,2023,2011,390000,74000000,,5600,24,24,not_currently_available,fixture
+Tamil Nadu,Chennai,2023,2011,760000,115000000,,9300,37,37,not_currently_available,fixture
+Goa,North Goa,2023,2011,85000,26000000,,2100,12,12,not_currently_available,fixture
+Odisha,Bhubaneswar,2023,2011,310000,88000000,,4900,28,28,not_currently_available,fixture
+Manipur,Imphal West,2023,2011,120000,42000000,,3200,22,22,not_currently_available,fixture
+Assam,Kamrup Metropolitan,2023,2011,250000,53000000,,3800,17,17,not_currently_available,fixture
