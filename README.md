@@ -6,6 +6,10 @@ relate at state/district-year grain. The earlier synthetic 99% player-funnel hea
 been removed because AIFF CRS/CMS player-level data is not publicly accessible. See
 [Data Availability Note](docs/data_availability_note.md).
 
+## Local Setup
+
+See [docs/SETUP.md](docs/SETUP.md) for environment variables, optional public-data clients, and the zero-cost workflow (`make setup`, `make test`, `make reproduce`).
+
 ## Architecture
 
 ```
@@ -48,7 +52,7 @@ Verified public data
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 43 passing (unit + integration) |
+| Tests | 48 passing (unit + integration) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)
