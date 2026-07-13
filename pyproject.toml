@@ -22,6 +22,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+public-data = [
+    "datagovindia==1.0.6",
+    "openpyxl==3.1.5",
+    "pdfplumber==0.11.4",
+]
 dev = [
     "moto[s3]==5.0.25",
     "mypy==1.14.1",
