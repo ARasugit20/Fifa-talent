@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pandas as pd
 import pytest
+from tests.conftest import fixture_path, load_fixture_csv
 
 from india_football_funnel.config import CENSUS_YEAR
 from india_football_funnel.data.loader import load_processed_parquet, process_raw_file
 from india_football_funnel.data.pipeline import build_processed_investment_frame
 from india_football_funnel.models import InvestmentOutcomeObservation
-from tests.conftest import fixture_path, load_fixture_csv
 
 
 def test_fixture_csv_tags_census_year() -> None:
@@ -41,8 +41,17 @@ def test_investment_observation_rejects_wrong_census_year() -> None:
 def test_pipeline_builder_preserves_census_year(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     raw_dir = tmp_path / "raw"
     processed_dir = tmp_path / "processed"
-    monkeypatch.setattr("india_football_funnel.config.RAW_DATA_DIR", raw_dir)
-    monkeypatch.setattr("india_football_funnel.config.PROCESSED_DATA_DIR", processed_dir)
+    for target in (
+        "india_football_funnel.config",
+        "india_football_funnel.data.pipeline",
+        "india_football_funnel.data.loader",
+    ):
+        monkeypatch.setattr(f"{target}.RAW_DATA_DIR", raw_dir)
+    for target in (
+        "india_football_funnel.config",
+        "india_football_funnel.data.loader",
+    ):
+        monkeypatch.setattr(f"{target}.PROCESSED_DATA_DIR", processed_dir)
 
     frame = build_processed_investment_frame()
     assert isinstance(frame, pd.DataFrame)

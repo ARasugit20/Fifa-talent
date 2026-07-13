@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from india_football_funnel.cli import reproduce
+from india_football_funnel.cli import reproduce, simulate
 from india_football_funnel.config import Settings, get_settings
 from india_football_funnel.simulation.run_simulation import load_simulation_summary
 from india_football_funnel.simulation.scenarios import get_scenario_by_name
@@ -48,7 +48,24 @@ def test_reproduce_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
     assert (raw_dir / "investment_outcomes.csv").exists()
     assert (processed_dir / "investment_outcomes.parquet").exists()
+    assert (processed_dir / "participation_by_state.csv").exists()
+    assert (results_dir / "analysis" / "funnel_summaries.json").exists()
+    assert (results_dir / "analysis" / "regression_results.json").exists()
     assert (results_dir / "baseline" / "simulation_summary.json").exists()
+    assert (results_dir / "top_quartile_budget" / "simulation_summary.json").exists()
+
+
+def test_simulate_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    results_dir = tmp_path / "results"
+    monkeypatch.setattr(
+        "india_football_funnel.simulation.run_simulation.RESULTS_DATA_DIR",
+        results_dir,
+    )
+
+    simulate()
+
+    assert (results_dir / "baseline" / "simulation_summary.json").exists()
+    assert (results_dir / "baseline" / "simulation_results.parquet").exists()
 
 
 def test_load_simulation_summary(tmp_path: Path) -> None:
