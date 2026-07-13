@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 
-from india_football_funnel.analysis.causal_regression import run_default_regressions
+from india_football_funnel.analysis.associative_regression import run_default_regressions
 from india_football_funnel.analysis.funnel_metrics import compute_all_state_summaries
 from india_football_funnel.config import PROCESSED_DATA_DIR, RAW_DATA_DIR, RESULTS_DATA_DIR
 from india_football_funnel.data.loader import (
@@ -82,7 +82,10 @@ def simulate() -> None:
     _configure_logging()
     result = run_simulation(baseline_scenario())
     write_simulation_outputs(result)
-    logger.info("Simulation complete: final_medals_mean=%.1f", result.final_medals_mean)
+    logger.info(
+        "Illustrative scenario complete (uncalibrated, not a forecast): " "final_medals_mean=%.1f",
+        result.final_medals_mean,
+    )
 
 
 def main() -> None:

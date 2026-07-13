@@ -2,39 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from india_football_funnel.config import CENSUS_YEAR, FUNNEL_STAGES, RETENTION_MAX, RETENTION_MIN
-
-
-class FunnelObservation(BaseModel):
-    """Deprecated player-level funnel observation retained for audit history."""
-
-    state: str
-    district: str
-    stage: Literal[
-        "grassroots",
-        "district",
-        "state",
-        "national_academy",
-        "professional",
-    ]
-    cohort_size: int = Field(ge=0)
-    retention_rate: float = Field(ge=RETENTION_MIN, le=RETENTION_MAX)
-    observation_date: date
-    latitude: float
-    longitude: float
-
-    @field_validator("stage")
-    @classmethod
-    def validate_stage(cls, value: str) -> str:
-        if value not in FUNNEL_STAGES:
-            msg = f"Invalid stage: {value}"
-            raise ValueError(msg)
-        return value
+from india_football_funnel.config import CENSUS_YEAR
 
 
 class InvestmentOutcomeObservation(BaseModel):
@@ -83,7 +55,7 @@ class InvestmentOutcomeObservation(BaseModel):
 
 
 class RegressionResult(BaseModel):
-    """Output from causal regression analysis."""
+    """Output from exploratory associative regression analysis."""
 
     predictor: str
     coefficient: float
@@ -114,7 +86,7 @@ class ScenarioParams(BaseModel):
 
 
 class SimulationYearResult(BaseModel):
-    """Aggregated simulation metrics for a single forecast year."""
+    """Aggregated simulation metrics for a single scenario year."""
 
     year: int
     mean_medals: float
@@ -124,7 +96,11 @@ class SimulationYearResult(BaseModel):
 
 
 class SimulationResult(BaseModel):
-    """Full Monte Carlo simulation output."""
+    """Full Monte Carlo simulation output.
+
+    Growth, budget-effect, and uncertainty parameters are manual assumptions,
+    not estimated from data. Outputs are illustrative scenarios, not forecasts.
+    """
 
     scenario_name: str
     n_runs: int
@@ -132,6 +108,8 @@ class SimulationResult(BaseModel):
     annual_results: list[SimulationYearResult]
     final_medals_mean: float
     final_medals_std: float
+    assumption_based: bool = True
+    uncalibrated: bool = True
 
 
 class FunnelMetricsSummary(BaseModel):

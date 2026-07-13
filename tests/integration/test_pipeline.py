@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from tests.conftest import fixture_path
 
-from india_football_funnel.analysis.causal_regression import run_default_regressions
+from india_football_funnel.analysis.associative_regression import run_default_regressions
 from india_football_funnel.analysis.funnel_metrics import (
     assert_funnel_monotonic,
     compute_all_state_summaries,

@@ -1,4 +1,9 @@
-"""Causal regression analysis for funnel drivers."""
+"""Exploratory associative regression for public-data outcomes.
+
+This module does NOT support causal inference: there is no control group, no
+identification strategy, and sample sizes are small. Treat outputs as descriptive
+associations only, not evidence of causal effects.
+"""
 
 from __future__ import annotations
 
@@ -40,7 +45,7 @@ def fit_outcome_regression(
     frame: pd.DataFrame,
     outcome: str = "medals",
 ) -> RegressionResult:
-    """Fit public-data outcome regression with available covariates."""
+    """Fit exploratory OLS associations between outcomes and covariates."""
     data = prepare_regression_frame(frame)
     if len(data) < REGRESSION_MIN_OBSERVATIONS:
         msg = f"Insufficient observations: {len(data)} < {REGRESSION_MIN_OBSERVATIONS}"
@@ -80,7 +85,7 @@ def fit_outcome_regression(
     upper = float(conf_int.loc[primary, 1])
 
     logger.info(
-        "Regression complete: outcome=%s primary=%s coef=%.4f n=%d r2=%.3f dropped=%s",
+        "Associative regression complete: outcome=%s primary=%s coef=%.4f n=%d r2=%.3f dropped=%s",
         outcome,
         primary,
         coef,
@@ -113,7 +118,7 @@ def fit_retention_regression(
 
 
 def run_default_regressions(frame: pd.DataFrame) -> list[RegressionResult]:
-    """Run outcome and participation regressions for public-data inputs."""
+    """Run exploratory outcome and participation regressions for public-data inputs."""
     outcomes = ["medals", "participation_rate"]
     results: list[RegressionResult] = []
     for outcome in outcomes:

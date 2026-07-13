@@ -36,6 +36,19 @@ jobs:
       - name: Run tests before deploy
         run: pytest --cov=src
 
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: india-football-funnel
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -50,20 +63,8 @@ jobs:
           terraform init
           terraform apply -auto-approve \
             -var="aws_account_id=${AWS_ACCOUNT_ID}" \
-            -var="aws_region=${AWS_REGION}"
-
-      - name: Login to ECR
-        id: ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
-          ECR_REPOSITORY: india-football-funnel
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+            -var="aws_region=${AWS_REGION}" \
+            -var="ecr_image_tag=${{ github.sha }}"
 
       - name: Smoke test simulation handler
         env:

@@ -1,4 +1,8 @@
-"""Talent flow Monte Carlo model."""
+"""Talent flow Monte Carlo model.
+
+Growth rate, budget effect, and uncertainty parameters are manual assumptions
+from config defaults, not estimated from data. Outputs are illustrative scenarios.
+"""
 
 from __future__ import annotations
 
@@ -49,6 +53,7 @@ def simulate_single_path(params: ScenarioParams, rng: np.random.Generator) -> li
         participants = youth_population * simulated_participation_rate
         medals = participants * max(params.baseline_medals_per_participant, 0.0)
         medals_by_year.append(medals)
+        participation_rate = simulated_participation_rate
 
     return medals_by_year
 

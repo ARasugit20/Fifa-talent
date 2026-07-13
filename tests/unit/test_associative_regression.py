@@ -1,11 +1,11 @@
-"""Unit tests for causal regression."""
+"""Unit tests for exploratory associative regression."""
 
 from __future__ import annotations
 
 import pytest
 from tests.conftest import load_fixture_csv
 
-from india_football_funnel.analysis.causal_regression import (
+from india_football_funnel.analysis.associative_regression import (
     fit_retention_regression,
     run_default_regressions,
 )

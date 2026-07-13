@@ -43,6 +43,8 @@ def aggregate_simulation_results(
         annual_results=annual_results,
         final_medals_mean=float(np.mean(final_values)),
         final_medals_std=float(np.std(final_values)),
+        assumption_based=True,
+        uncalibrated=True,
     )
 
 
@@ -71,6 +73,8 @@ def simulation_result_to_frame(result: SimulationResult) -> pd.DataFrame:
             "mean_participation_rate": year_result.mean_participation_rate,
             "final_medals_mean": result.final_medals_mean,
             "final_medals_std": result.final_medals_std,
+            "assumption_based": result.assumption_based,
+            "uncalibrated": result.uncalibrated,
         }
         for year_result in result.annual_results
     ]

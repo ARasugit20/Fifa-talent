@@ -58,7 +58,7 @@ Verified public data
 make setup       # one-command local env (no AWS cost)
 make test        # ruff + mypy + pytest --cov
 make reproduce   # regenerate all outputs from raw data
-make simulate    # quick baseline simulation
+make simulate    # quick baseline illustrative scenario (uncalibrated, not a forecast)
 make plan        # terraform plan (requires AWS_ACCOUNT_ID)
 make deploy      # stand up AWS stack (manual, billable)
 make destroy     # tear down AWS stack
@@ -95,8 +95,8 @@ src/india_football_funnel/
   config.py              # constants, thresholds, AWS resource names
   models.py              # Pydantic models (InvestmentOutcomeObservation, ScenarioParams, …)
   data/                  # Census/data.gov.in/PDF clients, loader, schema validation
-  analysis/              # investment-outcome metrics, geospatial, causal regression
-  simulation/            # Monte Carlo public-investment outcome scenarios
+  analysis/              # investment-outcome metrics, geospatial, associative regression
+  simulation/            # uncalibrated Monte Carlo illustrative scenarios
   aws/                   # S3 client, Lambda handlers, Athena queries
   cli.py                 # reproduce / simulate entry points
 infra/terraform/         # S3, Lambda, ECR, Glue, Athena, IAM
