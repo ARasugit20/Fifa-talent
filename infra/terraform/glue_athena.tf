@@ -84,6 +84,10 @@ resource "aws_glue_catalog_table" "investment_outcome_observation" {
       name = "facility_data_status"
       type = "string"
     }
+    columns {
+      name = "source_file"
+      type = "string"
+    }
   }
 }
 
