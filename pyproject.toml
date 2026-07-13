@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "india-football-funnel"
+version = "0.1.0"
+description = "India football talent funnel analysis, simulation, and AWS deployment"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "India Football Funnel Team" }]
+dependencies = [
+    "boto3==1.35.99",
+    "numpy==2.2.1",
+    "pandas==2.2.3",
+    "pandera==0.20.4",
+    "pydantic==2.10.4",
+    "pyarrow==18.1.0",
+    "scipy==1.14.1",
+    "statsmodels==0.14.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "moto[s3]==5.0.25",
+    "mypy==1.14.1",
+    "pre-commit==4.0.1",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
+    "ruff==0.8.4",
+    "pandas-stubs==2.2.3.241126",
+    "types-boto3==1.0.2",
+]
+
+[project.scripts]
+iff-reproduce = "india_football_funnel.cli:reproduce"
+iff-simulate = "india_football_funnel.cli:simulate"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "T20"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["T20"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"
+packages = ["india_football_funnel"]
+
+[[tool.mypy.overrides]]
+module = [
+    "pandera.*",
+    "statsmodels.*",
+    "scipy.*",
+    "boto3.*",
+    "botocore.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+markers = [
+    "integration: end-to-end pipeline tests",
+]
+
+[tool.coverage.run]
+source = ["src/india_football_funnel"]
+branch = true
+omit = [
+    "src/india_football_funnel/aws/lambda_handlers.py",
+    "src/india_football_funnel/data/scrapers/*",
+    "src/india_football_funnel/data/census_client.py",
+    "src/india_football_funnel/data/datagovindia_client.py",
+    "src/india_football_funnel/data/fifa_afc_reports.py",
+    "src/india_football_funnel/data/isl_data.py",
+    "src/india_football_funnel/data/khelo_india_centres.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = false
