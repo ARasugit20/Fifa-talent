@@ -18,7 +18,7 @@ test:
 	$(RUFF) check src tests
 	$(RUFF) format --check src tests
 	$(MYPY) src/
-	$(PYTEST) --cov=src --cov-report=term-missing
+	$(PYTEST) --cov=src/india_football_funnel --cov-report=term-missing
 
 lint:
 	$(RUFF) check src tests
