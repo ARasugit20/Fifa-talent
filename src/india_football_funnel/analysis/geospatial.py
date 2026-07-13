@@ -35,6 +35,15 @@ def filter_valid_coordinates(frame: pd.DataFrame) -> pd.DataFrame:
     return frame.loc[mask].copy()
 
 
+def aggregate_participation_by_state(frame: pd.DataFrame) -> pd.DataFrame:
+    """Compute average participation rate grouped by state."""
+    grouped = frame.groupby("state", as_index=False).agg(
+        avg_participation_rate=("participation_rate", "mean"),
+        avg_budget_per_capita=("budget_per_capita", "mean"),
+    )
+    return grouped.sort_values("avg_participation_rate", ascending=False)
+
+
 def aggregate_retention_by_state(frame: pd.DataFrame) -> pd.DataFrame:
     """Compute average retention rate grouped by state."""
     grouped = frame.groupby("state", as_index=False).agg(

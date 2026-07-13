@@ -5,6 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from india_football_funnel.analysis.geospatial import (
+    aggregate_participation_by_state,
     aggregate_retention_by_state,
     compute_state_centroid,
     filter_valid_coordinates,
@@ -26,6 +27,31 @@ def test_filter_valid_coordinates() -> None:
     )
     filtered = filter_valid_coordinates(frame)
     assert len(filtered) == len(frame)
+
+
+def test_aggregate_participation_by_state() -> None:
+    frame = pd.DataFrame(
+        [
+            {
+                "state": "Kerala",
+                "participation_rate": 0.02,
+                "budget_per_capita": 100.0,
+            },
+            {
+                "state": "Kerala",
+                "participation_rate": 0.04,
+                "budget_per_capita": 120.0,
+            },
+            {
+                "state": "Goa",
+                "participation_rate": 0.03,
+                "budget_per_capita": 200.0,
+            },
+        ]
+    )
+    grouped = aggregate_participation_by_state(frame)
+    assert "avg_participation_rate" in grouped.columns
+    assert grouped.iloc[0]["state"] == "Goa"
 
 
 def test_aggregate_retention_by_state() -> None:
