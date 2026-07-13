@@ -41,8 +41,8 @@ docker push \
 
 ```bash
 # Upload raw fixture to trigger ETL
-aws s3 cp tests/fixtures/sample_funnel.csv \
-  s3://india-football-funnel-data-$AWS_ACCOUNT_ID/raw/state_registry/2024-06-01/sample_funnel.csv
+aws s3 cp tests/fixtures/sample_investment_outcomes.csv \
+  s3://india-football-funnel-data-$AWS_ACCOUNT_ID/raw/state_registry/2024-06-01/sample_investment_outcomes.csv
 
 # Invoke simulation Lambda
 aws lambda invoke \

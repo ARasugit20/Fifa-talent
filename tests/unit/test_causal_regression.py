@@ -12,7 +12,7 @@ from india_football_funnel.analysis.causal_regression import (
 
 
 def test_fit_retention_regression() -> None:
-    frame = load_fixture_csv("sample_funnel.csv")
+    frame = load_fixture_csv()
     result = fit_retention_regression(frame, predictor="log_cohort")
     assert result.n_observations >= 10
     assert 0.0 <= result.p_value <= 1.0
@@ -21,12 +21,12 @@ def test_fit_retention_regression() -> None:
 
 
 def test_run_default_regressions() -> None:
-    frame = load_fixture_csv("sample_funnel.csv")
+    frame = load_fixture_csv()
     results = run_default_regressions(frame)
     assert len(results) >= 1
 
 
 def test_insufficient_observations_raises() -> None:
-    frame = load_fixture_csv("sample_funnel.csv").head(3)
+    frame = load_fixture_csv().head(3)
     with pytest.raises(ValueError, match="Insufficient observations"):
         fit_retention_regression(frame)

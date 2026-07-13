@@ -16,7 +16,7 @@ from india_football_funnel.config import RETENTION_MAX, RETENTION_MIN
 
 
 def test_compute_stage_counts() -> None:
-    frame = load_fixture_csv("sample_funnel.csv")
+    frame = load_fixture_csv()
     counts = compute_stage_counts(frame, "Maharashtra")
     assert counts["youth_population"] == 1_100_000
     assert counts["participation"] == 14_000
@@ -34,14 +34,14 @@ def test_identify_bottleneck() -> None:
 
 
 def test_funnel_monotonic_fixture() -> None:
-    frame = load_fixture_csv("sample_funnel.csv")
+    frame = load_fixture_csv()
     for state in frame["state"].unique():
         counts = compute_stage_counts(frame, state)
         assert assert_funnel_monotonic(counts)
 
 
 def test_retention_bounds() -> None:
-    frame = load_fixture_csv("sample_funnel.csv")
+    frame = load_fixture_csv()
     summary = compute_funnel_summary(frame, "Kerala")
     assert summary.census_year == 2011
     bounded_rates = [

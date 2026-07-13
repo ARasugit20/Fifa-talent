@@ -85,7 +85,7 @@ def test_etl_handler(
     def fake_download(key: str, local_path: Path) -> Path:
         import shutil
 
-        shutil.copy(fixture_path("sample_funnel.csv"), local_path)
+        shutil.copy(fixture_path("sample_investment_outcomes.csv"), local_path)
         return local_path
 
     mock_s3.download_file.side_effect = fake_download

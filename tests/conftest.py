@@ -13,5 +13,5 @@ def fixture_path(name: str) -> Path:
     return FIXTURES_DIR / name
 
 
-def load_fixture_csv(name: str) -> pd.DataFrame:
+def load_fixture_csv(name: str = "sample_investment_outcomes.csv") -> pd.DataFrame:
     return pd.read_csv(fixture_path(name))

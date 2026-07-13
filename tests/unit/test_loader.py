@@ -16,7 +16,7 @@ from india_football_funnel.data.loader import (
 
 
 def test_load_raw_csv(tmp_path: Path) -> None:
-    source = fixture_path("sample_funnel.csv")
+    source = fixture_path("sample_investment_outcomes.csv")
     frame = load_raw_csv(source)
     assert len(frame) == 10
     assert "state" in frame.columns
@@ -24,7 +24,7 @@ def test_load_raw_csv(tmp_path: Path) -> None:
 
 
 def test_raw_frame_to_observations() -> None:
-    frame = load_raw_csv(fixture_path("sample_funnel.csv"))
+    frame = load_raw_csv(fixture_path("sample_investment_outcomes.csv"))
     observations = raw_frame_to_observations(frame)
     assert len(observations) == 10
     assert observations[0].state == "Maharashtra"
@@ -32,7 +32,7 @@ def test_raw_frame_to_observations() -> None:
 
 
 def test_process_raw_file(tmp_path: Path) -> None:
-    source = fixture_path("sample_funnel.csv")
+    source = fixture_path("sample_investment_outcomes.csv")
     output = tmp_path / "processed.parquet"
     result_path = process_raw_file(source, output)
     assert result_path.exists()

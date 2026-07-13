@@ -22,7 +22,7 @@ from india_football_funnel.simulation.scenarios import baseline_scenario
 
 @pytest.mark.integration
 def test_full_pipeline_invariants(tmp_path: Path) -> None:
-    raw_path = fixture_path("sample_funnel.csv")
+    raw_path = fixture_path("sample_investment_outcomes.csv")
     processed_path = tmp_path / "processed.parquet"
     process_raw_file(raw_path, processed_path)
 
