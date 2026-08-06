@@ -8,7 +8,7 @@ TERRAFORM_DIR := infra/terraform
 ECR_IMAGE_TAG ?= $(shell git rev-parse HEAD 2>/dev/null || echo local)
 AWS_REGION ?= ap-south-1
 
-.PHONY: setup test lint typecheck format reproduce simulate deploy plan destroy clean docker-build
+.PHONY: setup test lint typecheck format reproduce simulate deploy plan plan-artifact collect-evidence destroy clean docker-build
 
 setup:
 	$(PYTHON) -m venv $(VENV)
@@ -45,6 +45,21 @@ plan:
 		-var="aws_account_id=$(AWS_ACCOUNT_ID)" \
 		-var="aws_region=$(AWS_REGION)" \
 		-var="ecr_image_tag=$(ECR_IMAGE_TAG)"
+
+plan-artifact:
+	@test -n "$(AWS_ACCOUNT_ID)" || (echo "Set AWS_ACCOUNT_ID before plan-artifact" && exit 1)
+	@mkdir -p docs/deployment_evidence/runs/local-$$(date -u +%Y%m%dT%H%M%SZ)
+	@RUN_DIR=$$(ls -td docs/deployment_evidence/runs/local-* | head -1); \
+	cd $(TERRAFORM_DIR) && terraform init -input=false && terraform plan -input=false -no-color \
+		-var="aws_account_id=$(AWS_ACCOUNT_ID)" \
+		-var="aws_region=$(AWS_REGION)" \
+		-var="ecr_image_tag=$(ECR_IMAGE_TAG)" \
+		| tee "$$RUN_DIR/terraform_plan.txt"; \
+	echo "Plan saved to $$RUN_DIR/terraform_plan.txt"
+
+collect-evidence:
+	@chmod +x scripts/collect_deploy_evidence.sh
+	./scripts/collect_deploy_evidence.sh post-deploy
 
 deploy:
 	@test -n "$(AWS_ACCOUNT_ID)" || (echo "Set AWS_ACCOUNT_ID before deploy" && exit 1)

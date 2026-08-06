@@ -1,0 +1,9 @@
+# Ignore auto-generated evidence runs until explicitly reviewed and added.
+runs/*
+!runs/.gitkeep
+
+# Ephemeral plan output from local plan-artifact (commit via runs/ instead)
+terraform_plan.txt
+
+# Ephemeral bundle from Deploy workflow local runs
+deploy-evidence/

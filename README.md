@@ -42,6 +42,8 @@ Verified public data
                           └─────────────┘
 ```
 
+Deployment evidence (Terraform plan, ETL logs, Glue schema, Athena results) is captured via [docs/deployment_evidence/RUNBOOK.md](docs/deployment_evidence/RUNBOOK.md). Evidence from live runs is stored under `docs/deployment_evidence/runs/` or downloaded from GitHub Actions artifacts.
+
 ## How This Is Engineered
 
 [![CI](https://github.com/ARasugit20/Fifa-talent/actions/workflows/ci.yml/badge.svg)](https://github.com/ARasugit20/Fifa-talent/actions/workflows/ci.yml)
@@ -60,6 +62,8 @@ make test        # ruff + mypy + pytest --cov
 make reproduce   # regenerate all outputs from raw data
 make simulate    # quick baseline illustrative scenario (uncalibrated, not a forecast)
 make plan        # terraform plan (requires AWS_ACCOUNT_ID and ECR_IMAGE_TAG)
+make plan-artifact  # save plan output under docs/deployment_evidence/runs/
+make collect-evidence  # post-deploy smoke + logs (stack must be live)
 make deploy      # stand up AWS stack (manual, billable)
 make destroy     # tear down AWS stack
 ```

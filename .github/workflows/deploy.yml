@@ -60,11 +60,51 @@ jobs:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
         run: |
+          mkdir -p ../../docs/deployment_evidence/deploy-evidence
           terraform init
           terraform apply -auto-approve \
             -var="aws_account_id=${AWS_ACCOUNT_ID}" \
             -var="aws_region=${AWS_REGION}" \
-            -var="ecr_image_tag=${{ github.sha }}"
+            -var="ecr_image_tag=${{ github.sha }}" \
+            | tee ../../docs/deployment_evidence/deploy-evidence/terraform_apply_output.txt
+
+      - name: Install project for manifest helper
+        run: pip install -e .
+
+      - name: Smoke test manifest-triggered ETL
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+        run: |
+          BUCKET="india-football-funnel-data-${AWS_ACCOUNT_ID}"
+          EVIDENCE=docs/deployment_evidence/deploy-evidence
+          aws s3 sync tests/fixtures/raw/ "s3://${BUCKET}/raw/" --exclude ".gitkeep"
+          python - <<'PY' > "${EVIDENCE}/dataset-ready.json"
+          from india_football_funnel.aws.infrastructure_etl import build_default_dataset_ready_manifest
+          print(build_default_dataset_ready_manifest().model_dump_json(indent=2))
+          PY
+          aws s3 cp "${EVIDENCE}/dataset-ready.json" "s3://${BUCKET}/raw/dataset-ready.json"
+          sleep 45
+          aws logs filter-log-events \
+            --log-group-name /aws/lambda/iff-etl-processor \
+            --start-time $(($(date +%s)*1000 - 600000)) \
+            --limit 50 \
+            --query 'events[].message' \
+            --output text \
+            | tee "${EVIDENCE}/etl_lambda_log.txt" || true
+          aws s3 ls "s3://${BUCKET}/processed/" | tee "${EVIDENCE}/s3_processed_listing.txt"
+          aws s3 ls "s3://${BUCKET}/results/" --recursive | tee "${EVIDENCE}/s3_results_listing.txt"
+
+      - name: Capture Glue table schema
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+        run: |
+          EVIDENCE=docs/deployment_evidence/deploy-evidence
+          aws glue get-table \
+            --database-name iff_data_catalog \
+            --name public_sports_infrastructure \
+            --output json \
+            | tee "${EVIDENCE}/glue_public_sports_infrastructure.json"
 
       - name: Smoke test simulation handler
         env:
@@ -74,5 +114,40 @@ jobs:
           aws lambda invoke \
             --function-name iff-simulation-runner \
             --payload '{"scenario_name":"baseline","n_runs":5,"years":2,"rng_seed":42}' \
-            /tmp/smoke-response.json
-          cat /tmp/smoke-response.json
+            docs/deployment_evidence/deploy-evidence/simulation_lambda_response.json
+          cat docs/deployment_evidence/deploy-evidence/simulation_lambda_response.json
+
+      - name: Run Athena smoke query
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+        run: |
+          EVIDENCE=docs/deployment_evidence/deploy-evidence
+          BUCKET="india-football-funnel-data-${AWS_ACCOUNT_ID}"
+          QUERY="SELECT canonical_state_ut, projects_total FROM iff_data_catalog.public_sports_infrastructure ORDER BY canonical_state_ut LIMIT 5;"
+          echo "${QUERY}" > "${EVIDENCE}/athena_query.sql"
+          EXEC_ID=$(aws athena start-query-execution \
+            --query-string "${QUERY}" \
+            --work-group iff-analytics \
+            --query-execution-context Database=iff_data_catalog \
+            --result-configuration "OutputLocation=s3://${BUCKET}/athena-results/" \
+            --query QueryExecutionId --output text)
+          for i in $(seq 1 30); do
+            STATE=$(aws athena get-query-execution --query-execution-id "${EXEC_ID}" \
+              --query 'QueryExecution.Status.State' --output text)
+            [ "${STATE}" = "SUCCEEDED" ] && break
+            [ "${STATE}" = "FAILED" ] && break
+            sleep 2
+          done
+          aws athena get-query-execution --query-execution-id "${EXEC_ID}" --output json \
+            > "${EVIDENCE}/athena_query_execution.json"
+          aws s3 cp "s3://${BUCKET}/athena-results/${EXEC_ID}.csv" \
+            "${EVIDENCE}/athena_query_result.csv" || true
+
+      - name: Upload deployment evidence artifact
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: deploy-evidence-${{ github.sha }}
+          path: docs/deployment_evidence/deploy-evidence/
+          retention-days: 90

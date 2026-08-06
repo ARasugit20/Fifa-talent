@@ -1,0 +1,55 @@
+name: Terraform Plan
+
+# Plan output requires AWS credentials (caller identity + provider refresh).
+# This workflow is manual-only so secrets are not exposed on every push.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: terraform-plan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'ap-south-1' }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+          terraform_wrapper: false
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: terraform init -input=false
+
+      - name: Terraform plan
+        working-directory: infra/terraform
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+        run: |
+          mkdir -p ../../docs/deployment_evidence
+          terraform plan -input=false -no-color \
+            -var="aws_account_id=${AWS_ACCOUNT_ID}" \
+            -var="aws_region=${AWS_REGION}" \
+            -var="ecr_image_tag=${{ github.sha }}" \
+            | tee ../../docs/deployment_evidence/terraform_plan.txt
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ github.sha }}
+          path: docs/deployment_evidence/terraform_plan.txt
+          retention-days: 30

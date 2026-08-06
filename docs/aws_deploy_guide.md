@@ -145,8 +145,11 @@ make destroy
 
 ## Evidence Template
 
-After a successful deploy, capture proof in `docs/deployment_evidence/`:
+After a successful deploy, capture proof using [deployment_evidence/RUNBOOK.md](deployment_evidence/RUNBOOK.md):
 
-- Terraform apply output (redact account-specific IDs if sharing publicly)
-- Screenshot or CLI output of Athena query against `public_sports_infrastructure`
-- Lambda CloudWatch log excerpt showing `processed` or `skipped_duplicate` status
+```bash
+./scripts/collect_deploy_evidence.sh post-deploy
+make destroy   # teardown to stay near idle cost estimate
+```
+
+Or trigger the **Terraform Plan** / **Deploy** GitHub Actions workflows and download artifacts from the run page.

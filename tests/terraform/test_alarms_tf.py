@@ -42,3 +42,21 @@ def test_glue_declares_public_sports_infrastructure_table() -> None:
     assert "canonical_state_ut" in content
     assert "provenance_sha256" in content
     assert "legacy_table" in content
+
+
+def test_terraform_plan_workflow_is_manual_dispatch() -> None:
+    content = (
+        Path(__file__).resolve().parents[2] / ".github" / "workflows" / "terraform-plan.yml"
+    ).read_text(encoding="utf-8")
+    assert "workflow_dispatch" in content
+    assert "terraform plan" in content
+    assert "upload-artifact" in content
+
+
+def test_deploy_workflow_uploads_evidence_artifact() -> None:
+    content = (
+        Path(__file__).resolve().parents[2] / ".github" / "workflows" / "deploy.yml"
+    ).read_text(encoding="utf-8")
+    assert "deploy-evidence" in content
+    assert "glue get-table" in content
+    assert "dataset-ready.json" in content
