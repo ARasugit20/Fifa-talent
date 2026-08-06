@@ -53,3 +53,24 @@ Processed infrastructure rows and `data/results/run_manifest.json` include:
 - `retrieved_at_utc` from provenance
 - `provenance_sha256` for each contributing raw file
 - Explicit caveat: state/UT public sports infrastructure descriptive analytics; not football-specific
+
+## Provenance JSON fields
+
+Each raw file requires a sibling `<filename>.provenance.json` with:
+
+| Field | Purpose |
+|---|---|
+| `dataset_name` | Human-readable dataset label |
+| `organization` | Publishing organization |
+| `source_page_url` | Official reference page used for the download |
+| `download_url` | Exact download URL or `manual_official_download` |
+| `retrieved_at_utc` | When the operator retrieved the file |
+| `source_published_or_updated_at` | Source publication or update date |
+| `geographic_grain` | Must be `state_ut` or `national` |
+| `time_coverage` | Reporting period covered by the file |
+| `license_or_terms_note` | License/terms summary |
+| `retrieval_method` | Use `manual_official_download` for operator-supplied files |
+| `sha256` | SHA-256 digest of the raw file bytes |
+| `notes` | Optional operator notes |
+
+Use `iff-provenance init|hash|verify <file>` to scaffold and validate these records locally.

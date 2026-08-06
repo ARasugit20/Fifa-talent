@@ -8,7 +8,15 @@ from pathlib import Path
 import pytest
 from tests.conftest import raw_fixture_root
 
-from india_football_funnel.cli import reproduce, simulate
+from india_football_funnel.cli import (
+    parse_reproduce_options,
+    provenance_hash,
+    provenance_init,
+    provenance_verify,
+    reproduce,
+    simulate,
+)
+from india_football_funnel.cli_options import ReproduceOptions
 from india_football_funnel.config import Settings, get_settings
 from india_football_funnel.simulation.run_simulation import load_simulation_summary
 from india_football_funnel.simulation.scenarios import get_scenario_by_name
@@ -58,6 +66,60 @@ def test_reproduce_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert manifest["row_count"] == 10
     assert "not football-specific" in manifest["caveat"]
     assert manifest["data_quality"]["stale_denominator_count"] == 10
+
+
+def test_reproduce_skip_quality_and_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    raw_dir = raw_fixture_root()
+    processed_dir = tmp_path / "processed"
+    results_dir = tmp_path / "results"
+    for target in (
+        "india_football_funnel.cli",
+        "india_football_funnel.config",
+    ):
+        monkeypatch.setattr(f"{target}.RAW_DATA_DIR", raw_dir)
+        monkeypatch.setattr(f"{target}.PROCESSED_DATA_DIR", processed_dir)
+        monkeypatch.setattr(f"{target}.RESULTS_DATA_DIR", results_dir)
+    monkeypatch.setattr("india_football_funnel.data.infrastructure_pipeline.RAW_DATA_DIR", raw_dir)
+    monkeypatch.setattr(
+        "india_football_funnel.data.infrastructure_pipeline.PROCESSED_DATA_DIR",
+        processed_dir,
+    )
+
+    reproduce(
+        ReproduceOptions(
+            skip_quality=True,
+            skip_manifest=True,
+            skip_summaries=True,
+            skip_reconciliation=True,
+        )
+    )
+
+    assert (processed_dir / "public_sports_infrastructure.parquet").exists()
+    assert not (results_dir / "data_quality_report.json").exists()
+    assert not (results_dir / "run_manifest.json").exists()
+
+
+def test_parse_reproduce_options_from_argv() -> None:
+    options = parse_reproduce_options(["--skip-quality", "--skip-manifest"])
+    assert options.skip_quality is True
+    assert options.skip_manifest is True
+    assert options.skip_summaries is False
+
+
+def test_provenance_init_hash_verify_roundtrip(tmp_path: Path) -> None:
+    raw_file = tmp_path / "financial_assistance.csv"
+    raw_file.write_text(
+        "state,financial_assistance,source_unit\nKerala,1,crore\n", encoding="utf-8"
+    )
+
+    provenance_path = provenance_init(raw_file)
+    assert provenance_path.exists()
+
+    digest = provenance_hash(raw_file)
+    assert len(digest) == 64
+    provenance_verify(raw_file)
 
 
 def test_reproduce_fails_without_required_raw_files(

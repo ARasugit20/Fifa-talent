@@ -40,7 +40,9 @@ Local tests do **not** require API keys. `make reproduce` requires manually down
 1. Download the four required files listed in [data_inventory.md](data_inventory.md).
 2. Place them under `data/raw/mdsd/`, `data/raw/khelo_india/`, and `data/raw/census/`.
 3. Create sibling `<filename>.provenance.json` files with matching SHA-256 checksums.
-4. Run `make reproduce`.
+4. Run `make reproduce` (optional flags: `--skip-quality`, `--skip-summaries`, `--skip-reconciliation`, `--skip-manifest`, `--skip-csv-export`).
+
+Use `iff-provenance init|hash|verify <file>` to scaffold and validate provenance JSON beside raw downloads.
 
 If files are missing, `iff-reproduce` fails with the expected path, role, and official source page URL.
 
@@ -76,6 +78,8 @@ Outputs are gitignored and regenerated locally.
 
 ## Next steps
 
+- [Architecture](architecture.md) — local reproduce and AWS event flows
+- [Metrics Glossary](metrics_glossary.md) — infrastructure, quality, and simulation metric definitions
 - [Data Inventory](data_inventory.md) — required raw files and schema
 - [Data Provenance](data_provenance.md) — verified source list
 - [Data Availability Note](data_availability_note.md) — what is and is not publicly accessible

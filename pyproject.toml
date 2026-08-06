@@ -39,8 +39,9 @@ dev = [
 ]
 
 [project.scripts]
-iff-reproduce = "india_football_funnel.cli:reproduce"
+iff-reproduce = "india_football_funnel.cli:main_reproduce"
 iff-simulate = "india_football_funnel.cli:simulate"
+iff-provenance = "india_football_funnel.cli:provenance_main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

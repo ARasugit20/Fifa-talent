@@ -18,9 +18,7 @@ resource "aws_lambda_function" "etl_processor" {
     }
   }
 
-  tags = {
-    Project = var.project_name
-  }
+  tags = local.common_tags
 }
 
 resource "aws_lambda_function" "simulation_runner" {
@@ -43,9 +41,7 @@ resource "aws_lambda_function" "simulation_runner" {
     }
   }
 
-  tags = {
-    Project = var.project_name
-  }
+  tags = local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "etl_lambda" {

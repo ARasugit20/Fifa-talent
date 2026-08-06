@@ -1,10 +1,9 @@
 resource "aws_s3_bucket" "data_lake" {
   bucket = local.bucket_name
 
-  tags = {
-    Project = var.project_name
+  tags = merge(local.common_tags, {
     Purpose = "data-lake"
-  }
+  })
 }
 
 resource "aws_s3_bucket_public_access_block" "data_lake" {

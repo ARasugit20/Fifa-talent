@@ -66,7 +66,10 @@ def load_provenance(raw_file: Path) -> RawDatasetProvenance:
 def validate_raw_file_with_provenance(raw_file: Path) -> RawDatasetProvenance:
     """Ensure a raw file exists and its provenance hash matches the file contents."""
     if not raw_file.exists():
-        msg = f"Required raw file not found: {raw_file}"
+        msg = (
+            f"Required raw file not found: {raw_file}. "
+            "See docs/data_inventory.md for required inputs and placement."
+        )
         raise FileNotFoundError(msg)
 
     provenance = load_provenance(raw_file)
@@ -74,10 +77,56 @@ def validate_raw_file_with_provenance(raw_file: Path) -> RawDatasetProvenance:
     if provenance.sha256 != actual_hash:
         msg = (
             f"Provenance hash mismatch for {raw_file.name}. "
-            "Recompute sha256 and update the provenance record."
+            f"Expected {provenance.sha256}, computed {actual_hash}. "
+            "Run `iff-provenance hash <file>` to update the provenance record."
         )
         raise ValueError(msg)
     return provenance
+
+
+def init_provenance_template(raw_file: Path, **overrides: str) -> Path:
+    """Write a sibling provenance JSON template for a raw file."""
+    if not raw_file.exists():
+        msg = f"Cannot initialize provenance for missing raw file: {raw_file}"
+        raise FileNotFoundError(msg)
+
+    provenance_file = provenance_path_for(raw_file)
+    if provenance_file.exists():
+        msg = f"Provenance record already exists: {provenance_file.name}"
+        raise FileExistsError(msg)
+
+    payload = {
+        "dataset_name": overrides.get("dataset_name", raw_file.stem.replace("_", " ")),
+        "organization": overrides.get("organization", ""),
+        "source_page_url": overrides.get("source_page_url", ""),
+        "download_url": overrides.get("download_url", "manual_official_download"),
+        "retrieved_at_utc": overrides.get("retrieved_at_utc", ""),
+        "source_published_or_updated_at": overrides.get("source_published_or_updated_at", ""),
+        "geographic_grain": overrides.get("geographic_grain", "state_ut"),
+        "time_coverage": overrides.get("time_coverage", ""),
+        "license_or_terms_note": overrides.get("license_or_terms_note", ""),
+        "retrieval_method": overrides.get("retrieval_method", "manual_official_download"),
+        "sha256": sha256_file(raw_file),
+        "notes": overrides.get("notes", ""),
+    }
+    provenance_file.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return provenance_file
+
+
+def update_provenance_sha256(raw_file: Path) -> RawDatasetProvenance:
+    """Recompute and persist the SHA-256 digest in the sibling provenance record."""
+    provenance_file = provenance_path_for(raw_file)
+    if not provenance_file.exists():
+        msg = (
+            f"Missing provenance record for {raw_file.name}. "
+            "Run `iff-provenance init <file>` first."
+        )
+        raise FileNotFoundError(msg)
+
+    payload = json.loads(provenance_file.read_text(encoding="utf-8"))
+    payload["sha256"] = sha256_file(raw_file)
+    provenance_file.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return RawDatasetProvenance.model_validate(payload)
 
 
 def discover_validated_raw_files(

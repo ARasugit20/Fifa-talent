@@ -70,6 +70,57 @@ def test_s3_parse_event(settings: Settings) -> None:
     assert key == "raw/state_registry/2024-06-01/data.csv"
 
 
+def test_s3_client_object_exists_and_tags(settings: Settings) -> None:
+    mock_client = MagicMock()
+    mock_client.head_object.return_value = {"ETag": '"etag-123"'}
+    mock_client.get_object_tagging.return_value = {
+        "TagSet": [{"Key": "iff:source-etag", "Value": "etag-123"}]
+    }
+    s3 = S3Client(settings, client=mock_client)
+
+    assert s3.object_exists("processed/data.parquet") is True
+    assert s3.get_object_etag("raw/data.csv") == "etag-123"
+    assert s3.get_object_tags("processed/data.parquet") == {"iff:source-etag": "etag-123"}
+
+    s3.put_object_tags("raw/data.csv", {"iff:processing-status": "processed"})
+    mock_client.put_object_tagging.assert_called_once()
+
+
+@patch("india_football_funnel.aws.lambda_handlers.S3Client")
+@patch("india_football_funnel.aws.lambda_handlers.process_raw_file")
+def test_etl_handler_skips_duplicate_source(
+    mock_process: MagicMock,
+    mock_s3_cls: MagicMock,
+) -> None:
+    mock_s3 = MagicMock()
+    mock_s3.parse_s3_event.return_value = ("test-bucket", "raw/data.csv")
+    mock_s3.processed_key.return_value = "processed/data.parquet"
+    mock_s3.object_exists.return_value = True
+    mock_s3.get_object_etag.return_value = "etag-123"
+    mock_s3.get_object_tags.return_value = {"iff:source-etag": "etag-123"}
+    mock_s3_cls.return_value = mock_s3
+
+    response = etl_handler(
+        {
+            "Records": [
+                {
+                    "s3": {
+                        "bucket": {"name": "test-bucket"},
+                        "object": {"key": "raw/data.csv"},
+                    }
+                }
+            ]
+        },
+        None,
+    )
+
+    assert response["statusCode"] == 200
+    body = json.loads(response["body"])
+    assert body["skipped"] is True
+    mock_process.assert_not_called()
+    mock_s3.put_object_tags.assert_called_once()
+
+
 @patch("india_football_funnel.aws.lambda_handlers.S3Client")
 @patch("india_football_funnel.aws.lambda_handlers.process_raw_file")
 def test_etl_handler(
@@ -81,6 +132,8 @@ def test_etl_handler(
     mock_s3 = MagicMock()
     mock_s3.parse_s3_event.return_value = ("test-bucket", "raw/data.csv")
     mock_s3.processed_key.return_value = "processed/data.parquet"
+    mock_s3.object_exists.return_value = False
+    mock_s3.get_object_etag.return_value = "etag-123"
 
     def fake_download(key: str, local_path: Path) -> Path:
         import shutil
@@ -105,6 +158,7 @@ def test_etl_handler(
     response = etl_handler(event, None)
     assert response["statusCode"] == 200
     body = json.loads(response["body"])
+    assert body["skipped"] is False
     assert "processed_key" in body
 
 

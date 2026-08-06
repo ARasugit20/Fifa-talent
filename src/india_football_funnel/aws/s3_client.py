@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import boto3
+from botocore.exceptions import ClientError
 
 from india_football_funnel.config import PROCESSED_PREFIX, RAW_PREFIX, RESULTS_PREFIX, Settings
 
@@ -24,11 +25,52 @@ class S3Client:
     def bucket(self) -> str:
         return self.settings.resolved_bucket_name
 
-    def upload_file(self, local_path: Path, key: str) -> str:
+    def upload_file(
+        self,
+        local_path: Path,
+        key: str,
+        tags: dict[str, str] | None = None,
+    ) -> str:
         """Upload a local file to S3."""
         logger.info("Uploading %s to s3://%s/%s", local_path, self.bucket, key)
-        self._client.upload_file(str(local_path), self.bucket, key)
+        extra_args: dict[str, str] = {}
+        if tags:
+            extra_args["Tagging"] = "&".join(f"{name}={value}" for name, value in tags.items())
+        if extra_args:
+            self._client.upload_file(str(local_path), self.bucket, key, ExtraArgs=extra_args)
+        else:
+            self._client.upload_file(str(local_path), self.bucket, key)
         return f"s3://{self.bucket}/{key}"
+
+    def object_exists(self, key: str) -> bool:
+        """Return True when an object key exists in the configured bucket."""
+        try:
+            self._client.head_object(Bucket=self.bucket, Key=key)
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code", "")
+            if error_code in {"404", "NoSuchKey", "NotFound"}:
+                return False
+            raise
+        return True
+
+    def get_object_etag(self, key: str) -> str:
+        """Return the S3 ETag for an object key."""
+        response = self._client.head_object(Bucket=self.bucket, Key=key)
+        return str(response["ETag"]).strip('"')
+
+    def get_object_tags(self, key: str) -> dict[str, str]:
+        """Return object tags as a flat key/value mapping."""
+        response = self._client.get_object_tagging(Bucket=self.bucket, Key=key)
+        return {tag["Key"]: tag["Value"] for tag in response.get("TagSet", [])}
+
+    def put_object_tags(self, key: str, tags: dict[str, str]) -> None:
+        """Replace object tags for an S3 key."""
+        tag_set = [{"Key": name, "Value": value} for name, value in tags.items()]
+        self._client.put_object_tagging(
+            Bucket=self.bucket,
+            Key=key,
+            Tagging={"TagSet": tag_set},
+        )
 
     def download_file(self, key: str, local_path: Path) -> Path:
         """Download an S3 object to a local path."""

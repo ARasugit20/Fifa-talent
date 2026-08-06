@@ -52,7 +52,7 @@ Verified public data
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 69 passing (unit + integration) |
+| Tests | 90 passing (unit + integration + terraform checks) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)
@@ -76,8 +76,7 @@ See also: [cost estimate](docs/cost_estimate.md) · [AWS deploy guide](docs/aws_
 
 Only verified public sources are used in v1. Full source notes live in
 [Data Provenance](docs/data_provenance.md).
-Each `make reproduce` run also emits a non-blocking data quality scorecard and reconciliation
-audit; simulation outputs record a versioned [assumption registry](docs/simulation_assumptions.md).
+Each `make reproduce` run also emits a non-blocking [data quality scorecard](docs/metrics_glossary.md) and reconciliation audit; simulation outputs record a versioned [assumption registry](docs/simulation_assumptions.md). See [architecture.md](docs/architecture.md) for local and AWS flows.
 
 | Source | Use |
 |--------|-----|

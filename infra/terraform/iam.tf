@@ -29,12 +29,20 @@ resource "aws_iam_role_policy" "etl_lambda" {
       },
       {
         Effect = "Allow"
-        Action = ["s3:GetObject"]
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectTagging",
+          "s3:PutObjectTagging"
+        ]
         Resource = "${aws_s3_bucket.data_lake.arn}/raw/*"
       },
       {
         Effect = "Allow"
-        Action = ["s3:PutObject"]
+        Action = [
+          "s3:PutObject",
+          "s3:GetObjectTagging",
+          "s3:PutObjectTagging"
+        ]
         Resource = "${aws_s3_bucket.data_lake.arn}/processed/*"
       }
     ]

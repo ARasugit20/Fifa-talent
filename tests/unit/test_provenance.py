@@ -11,8 +11,10 @@ from tests.conftest import raw_fixture_root
 from india_football_funnel.data.provenance import (
     RawDatasetProvenance,
     discover_validated_raw_files,
+    init_provenance_template,
     load_provenance,
     sha256_file,
+    update_provenance_sha256,
     validate_raw_file_with_provenance,
 )
 
@@ -47,7 +49,7 @@ def test_validate_raw_file_with_provenance_rejects_hash_mismatch(tmp_path: Path)
         encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="Provenance hash mismatch"):
+    with pytest.raises(ValueError, match="Expected deadbeef, computed"):
         validate_raw_file_with_provenance(raw_file)
 
 
@@ -69,6 +71,58 @@ def test_discover_validated_raw_files_skips_provenance_metadata() -> None:
 
     assert len(validated) == 2
     assert all(isinstance(provenance, RawDatasetProvenance) for _path, provenance in validated)
+
+
+def test_init_provenance_template_writes_sha256(tmp_path: Path) -> None:
+    raw_file = tmp_path / "state_population_2011.csv"
+    raw_file.write_text(
+        "state,denominator_value,denominator_definition\nKerala,1,total\n", encoding="utf-8"
+    )
+
+    provenance_path = init_provenance_template(
+        raw_file,
+        dataset_name="test",
+        organization="test org",
+        source_page_url="https://example.com",
+        download_url="manual",
+        retrieved_at_utc="2026-07-13T00:00:00Z",
+        source_published_or_updated_at="2026-07-13",
+        geographic_grain="state_ut",
+        time_coverage="test",
+        license_or_terms_note="test",
+        retrieval_method="manual_official_download",
+    )
+
+    provenance = load_provenance(raw_file)
+    assert provenance_path.exists()
+    assert provenance.sha256 == sha256_file(raw_file)
+
+
+def test_update_provenance_sha256_persists_new_digest(tmp_path: Path) -> None:
+    raw_file = tmp_path / "state_population_2011.csv"
+    raw_file.write_text(
+        "state,denominator_value,denominator_definition\nKerala,1,total\n", encoding="utf-8"
+    )
+    init_provenance_template(
+        raw_file,
+        dataset_name="test",
+        organization="test org",
+        source_page_url="https://example.com",
+        download_url="manual",
+        retrieved_at_utc="2026-07-13T00:00:00Z",
+        source_published_or_updated_at="2026-07-13",
+        geographic_grain="state_ut",
+        time_coverage="test",
+        license_or_terms_note="test",
+        retrieval_method="manual_official_download",
+    )
+
+    raw_file.write_text(
+        "state,denominator_value,denominator_definition\nKerala,2,total\n",
+        encoding="utf-8",
+    )
+    updated = update_provenance_sha256(raw_file)
+    assert updated.sha256 == sha256_file(raw_file)
 
 
 def test_discover_validated_raw_files_allows_missing_source_directory(tmp_path: Path) -> None:

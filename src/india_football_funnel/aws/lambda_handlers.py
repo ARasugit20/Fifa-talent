@@ -16,6 +16,21 @@ from india_football_funnel.simulation.scenarios import get_scenario_by_name
 
 logger = logging.getLogger(__name__)
 
+TAG_PROCESSING_STATUS = "iff:processing-status"
+TAG_SOURCE_ETAG = "iff:source-etag"
+TAG_PROCESSED_KEY = "iff:processed-key"
+STATUS_PROCESSED = "processed"
+STATUS_SKIPPED = "skipped-duplicate"
+
+
+def _should_skip_duplicate_etl(s3: S3Client, raw_key: str, processed_key: str) -> bool:
+    """Skip ETL when processed output already exists for the same source ETag."""
+    if not s3.object_exists(processed_key):
+        return False
+    source_etag = s3.get_object_etag(raw_key)
+    processed_tags = s3.get_object_tags(processed_key)
+    return processed_tags.get(TAG_SOURCE_ETAG) == source_etag
+
 
 def etl_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Lambda handler: validate raw S3 upload and write processed parquet."""
@@ -26,18 +41,49 @@ def etl_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     bucket, key = s3.parse_s3_event(event)
     logger.info("ETL triggered for s3://%s/%s", bucket, key)
 
+    processed_key = s3.processed_key(f"{Path(key).stem}.parquet")
+    if _should_skip_duplicate_etl(s3, key, processed_key):
+        s3.put_object_tags(
+            key,
+            {
+                TAG_PROCESSING_STATUS: STATUS_SKIPPED,
+                TAG_PROCESSED_KEY: processed_key,
+            },
+        )
+        logger.info("Skipping duplicate ETL for already-processed source etag: %s", key)
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"processed_key": processed_key, "skipped": True}),
+        }
+
+    source_etag = s3.get_object_etag(key)
     with tempfile.TemporaryDirectory() as tmpdir:
         local_raw = Path(tmpdir) / Path(key).name
         s3.download_file(key, local_raw)
         processed_local = Path(tmpdir) / f"{local_raw.stem}.parquet"
         process_raw_file(local_raw, processed_local)
 
-        processed_key = s3.processed_key(processed_local.name)
-        s3.upload_file(processed_local, processed_key)
+        s3.upload_file(
+            processed_local,
+            processed_key,
+            tags={
+                TAG_SOURCE_ETAG: source_etag,
+                TAG_PROCESSING_STATUS: STATUS_PROCESSED,
+            },
+        )
+
+    s3.put_object_tags(
+        key,
+        {
+            TAG_PROCESSING_STATUS: STATUS_PROCESSED,
+            TAG_PROCESSED_KEY: processed_key,
+            TAG_SOURCE_ETAG: source_etag,
+        },
+    )
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"processed_key": processed_key}),
+        "body": json.dumps({"processed_key": processed_key, "skipped": False}),
     }
 
 

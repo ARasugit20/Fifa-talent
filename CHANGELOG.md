@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **Phase 2 pipeline gaps** — CLI `--skip-*` reproduce flags, `iff-provenance` helper commands, Lambda S3 tagging/idempotency, Terraform cost/error alarms, and docs for metrics/architecture.
 - **Runtime quality scorecard** — `iff-reproduce` now writes a non-blocking data-quality report and a state/UT reconciliation CSV, both referenced by the run manifest.
 - **Simulation assumption registry** — Simulation JSON and Parquet outputs now snapshot versioned scenario and config assumptions; see `docs/simulation_assumptions.md`.
 - **Primary public-data migration** — Manual-download-first infrastructure pipeline with provenance-validated raw inputs (`data/provenance.py`, `data/parsers/*`, `data/infrastructure_pipeline.py`).
