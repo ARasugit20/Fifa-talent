@@ -54,7 +54,7 @@ Deployment evidence (Terraform plan, ETL logs, Glue schema, Athena results) is c
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 119 passing (unit + integration + terraform checks) |
+| Tests | 135 passing (unit + integration + terraform checks) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)

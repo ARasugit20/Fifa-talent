@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **Phase C CLI coverage** — Added argparse error, all `--skip-*` interactions, explicit-option precedence, provenance subcommand dispatch, unknown filename, and console-entry-point tests; `cli.py` now has 98% focused coverage.
 - **Phase B deployment evidence** — Manual runbook, `collect_deploy_evidence.sh`, Terraform Plan workflow (artifact upload), Deploy workflow ETL/Glue/Athena evidence capture, and `make plan-artifact` / `make collect-evidence` targets.
 - **Phase 3 Lambda pipeline alignment** — Manifest-triggered four-source infrastructure ETL on `raw/dataset-ready.json`, shared `write_reproduce_artifacts()` for local/AWS parity, provenance SHA-256 fingerprint idempotency, Glue `public_sports_infrastructure` table, moto integration tests, and updated deploy documentation.
 - **Phase 2 pipeline gaps** — CLI `--skip-*` reproduce flags, `iff-provenance` helper commands, Lambda S3 tagging/idempotency, Terraform cost/error alarms, and docs for metrics/architecture.
