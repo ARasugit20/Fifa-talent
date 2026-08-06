@@ -5,6 +5,8 @@ PYTEST := $(VENV)/bin/pytest
 MYPY := $(VENV)/bin/mypy
 RUFF := $(VENV)/bin/ruff
 TERRAFORM_DIR := infra/terraform
+ECR_IMAGE_TAG ?= $(shell git rev-parse HEAD 2>/dev/null || echo local)
+AWS_REGION ?= ap-south-1
 
 .PHONY: setup test lint typecheck format reproduce simulate deploy plan destroy clean docker-build
 
@@ -41,20 +43,23 @@ plan:
 	@test -n "$(AWS_ACCOUNT_ID)" || (echo "Set AWS_ACCOUNT_ID before deploy/plan" && exit 1)
 	cd $(TERRAFORM_DIR) && terraform init && terraform plan \
 		-var="aws_account_id=$(AWS_ACCOUNT_ID)" \
-		-var="aws_region=$(AWS_REGION)"
+		-var="aws_region=$(AWS_REGION)" \
+		-var="ecr_image_tag=$(ECR_IMAGE_TAG)"
 
 deploy:
 	@test -n "$(AWS_ACCOUNT_ID)" || (echo "Set AWS_ACCOUNT_ID before deploy" && exit 1)
 	@echo "WARNING: This creates billable AWS resources. Run 'make destroy' when done."
 	cd $(TERRAFORM_DIR) && terraform init && terraform apply -auto-approve \
 		-var="aws_account_id=$(AWS_ACCOUNT_ID)" \
-		-var="aws_region=$(AWS_REGION)"
+		-var="aws_region=$(AWS_REGION)" \
+		-var="ecr_image_tag=$(ECR_IMAGE_TAG)"
 
 destroy:
 	@echo "Tearing down AWS resources..."
 	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve \
 		-var="aws_account_id=$(AWS_ACCOUNT_ID)" \
-		-var="aws_region=$(AWS_REGION)"
+		-var="aws_region=$(AWS_REGION)" \
+		-var="ecr_image_tag=$(ECR_IMAGE_TAG)"
 
 docker-build:
 	docker build -t india-football-funnel:latest .

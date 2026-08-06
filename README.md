@@ -18,15 +18,15 @@ Verified public data
       ▼
 ┌─────────────┐     S3 raw/ prefix      ┌──────────────────┐
 │  Clients    │ ──────────────────────► │  S3 Data Lake    │
-│  (local/    │                         │  (encrypted,     │
+│  (local/    │   8 inputs + manifest   │  (encrypted,     │
 │   mocked CI)│                         │   lifecycle)     │
 └─────────────┘                         └────────┬─────────┘
-                                                 │ S3 event
+                                                 │ dataset-ready.json
                                                  ▼
                                         ┌──────────────────┐
                                         │  Lambda ETL      │
-                                        │  (validate +     │
-                                        │   parquet)       │
+                                        │  (four-source    │
+                                        │   infrastructure)│
                                         └────────┬─────────┘
                                                  │
                     ┌────────────────────────────┼────────────────────────┐
@@ -52,14 +52,14 @@ Verified public data
 | Test coverage | **91%** on `src/india_football_funnel` |
 | Type safety | mypy strict, zero errors |
 | Lint | ruff |
-| Tests | 90 passing (unit + integration + terraform checks) |
+| Tests | 119 passing (unit + integration + terraform checks) |
 
 ```bash
 make setup       # one-command local env (no AWS cost)
 make test        # ruff + mypy + pytest --cov
 make reproduce   # regenerate all outputs from raw data
 make simulate    # quick baseline illustrative scenario (uncalibrated, not a forecast)
-make plan        # terraform plan (requires AWS_ACCOUNT_ID)
+make plan        # terraform plan (requires AWS_ACCOUNT_ID and ECR_IMAGE_TAG)
 make deploy      # stand up AWS stack (manual, billable)
 make destroy     # tear down AWS stack
 ```

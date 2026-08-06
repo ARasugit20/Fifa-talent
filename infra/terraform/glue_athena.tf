@@ -10,9 +10,12 @@ resource "aws_glue_catalog_table" "investment_outcome_observation" {
 
   table_type = "EXTERNAL_TABLE"
 
+  description = "Legacy investment-outcome schema; not populated by manifest-triggered infrastructure ETL."
+
   parameters = {
     classification  = "parquet"
     compressionType = "none"
+    legacy_table    = "true"
   }
 
   storage_descriptor {
@@ -86,6 +89,99 @@ resource "aws_glue_catalog_table" "investment_outcome_observation" {
     }
     columns {
       name = "source_file"
+      type = "string"
+    }
+  }
+}
+
+resource "aws_glue_catalog_table" "public_sports_infrastructure" {
+  name          = "public_sports_infrastructure"
+  database_name = aws_glue_catalog_database.iff_catalog.name
+
+  table_type = "EXTERNAL_TABLE"
+
+  description = "State/UT public sports infrastructure records from manifest-triggered ETL."
+
+  parameters = {
+    classification  = "parquet"
+    compressionType = "none"
+  }
+
+  storage_descriptor {
+    location      = "s3://${aws_s3_bucket.data_lake.id}/processed/public_sports_infrastructure.parquet"
+    input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
+    output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
+
+    ser_de_info {
+      serialization_library = "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe"
+    }
+
+    columns {
+      name = "canonical_state_ut"
+      type = "string"
+    }
+    columns {
+      name = "reporting_period"
+      type = "string"
+    }
+    columns {
+      name = "projects_to_be_started"
+      type = "int"
+    }
+    columns {
+      name = "projects_under_progress"
+      type = "int"
+    }
+    columns {
+      name = "projects_completed"
+      type = "int"
+    }
+    columns {
+      name = "projects_total"
+      type = "int"
+    }
+    columns {
+      name = "amount_sanctioned_inr"
+      type = "double"
+    }
+    columns {
+      name = "amount_released_inr"
+      type = "double"
+    }
+    columns {
+      name = "financial_assistance_inr"
+      type = "double"
+    }
+    columns {
+      name = "denominator_value"
+      type = "int"
+    }
+    columns {
+      name = "denominator_definition"
+      type = "string"
+    }
+    columns {
+      name = "denominator_year"
+      type = "int"
+    }
+    columns {
+      name = "denominator_is_stale"
+      type = "boolean"
+    }
+    columns {
+      name = "source_file"
+      type = "string"
+    }
+    columns {
+      name = "source_url"
+      type = "string"
+    }
+    columns {
+      name = "retrieved_at_utc"
+      type = "string"
+    }
+    columns {
+      name = "provenance_sha256"
       type = "string"
     }
   }

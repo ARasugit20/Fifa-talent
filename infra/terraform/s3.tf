@@ -49,8 +49,7 @@ resource "aws_s3_bucket_notification" "raw_upload" {
   lambda_function {
     lambda_function_arn = aws_lambda_function.etl_processor.arn
     events              = ["s3:ObjectCreated:*"]
-    filter_prefix       = "raw/"
-    filter_suffix       = ".csv"
+    filter_prefix       = "raw/dataset-ready.json"
   }
 
   depends_on = [aws_lambda_permission.allow_s3_etl]

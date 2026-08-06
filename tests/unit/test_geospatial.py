@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
 from india_football_funnel.analysis.geospatial import (
     aggregate_participation_by_state,
@@ -65,6 +66,26 @@ def test_aggregate_retention_by_state() -> None:
     assert "state" in grouped.columns
     assert "avg_retention" in grouped.columns
     assert len(grouped) == frame["state"].nunique()
+
+
+def test_filter_valid_coordinates_drops_out_of_india_rows() -> None:
+    frame = pd.DataFrame(
+        [
+            {"state": "Kerala", "retention_rate": 0.1, "latitude": 9.9, "longitude": 76.2},
+            {"state": "Abroad", "retention_rate": 0.2, "latitude": 51.5, "longitude": -0.12},
+        ]
+    )
+    filtered = filter_valid_coordinates(frame)
+    assert len(filtered) == 1
+    assert filtered.iloc[0]["state"] == "Kerala"
+
+
+def test_compute_state_centroid_raises_for_unknown_state() -> None:
+    frame = pd.DataFrame(
+        [{"state": "Kerala", "retention_rate": 0.1, "latitude": 9.9, "longitude": 76.2}]
+    )
+    with pytest.raises(ValueError, match="No observations for state"):
+        compute_state_centroid(frame, "Unknown")
 
 
 def test_compute_state_centroid() -> None:

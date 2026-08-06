@@ -42,6 +42,8 @@ Local tests do **not** require API keys. `make reproduce` requires manually down
 3. Create sibling `<filename>.provenance.json` files with matching SHA-256 checksums.
 4. Run `make reproduce` (optional flags: `--skip-quality`, `--skip-summaries`, `--skip-reconciliation`, `--skip-manifest`, `--skip-csv-export`).
 
+For AWS, upload the same eight files to S3 and publish `raw/dataset-ready.json` last; see [aws_deploy_guide.md](aws_deploy_guide.md).
+
 Use `iff-provenance init|hash|verify <file>` to scaffold and validate provenance JSON beside raw downloads.
 
 If files are missing, `iff-reproduce` fails with the expected path, role, and official source page URL.

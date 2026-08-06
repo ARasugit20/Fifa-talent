@@ -12,6 +12,9 @@ fixture mirrors the official layout).
 3. Create `<filename>.provenance.json` beside each file with a matching SHA-256 digest.
 4. Run `make reproduce` (or `iff-reproduce`).
 
+For AWS deploys, upload the same eight validated objects to `s3://<bucket>/raw/` and upload
+`raw/dataset-ready.json` **last** to trigger Lambda once. See [aws_deploy_guide.md](aws_deploy_guide.md).
+
 If any required file or provenance record is missing, `iff-reproduce` fails with the expected
 path, file role, and official source page URL.
 

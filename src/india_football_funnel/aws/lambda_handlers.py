@@ -8,32 +8,17 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from india_football_funnel.aws.infrastructure_etl import run_infrastructure_etl_from_manifest
 from india_football_funnel.aws.s3_client import S3Client
 from india_football_funnel.config import get_settings
-from india_football_funnel.data.loader import process_raw_file
 from india_football_funnel.simulation.run_simulation import run_simulation, write_simulation_outputs
 from india_football_funnel.simulation.scenarios import get_scenario_by_name
 
 logger = logging.getLogger(__name__)
 
-TAG_PROCESSING_STATUS = "iff:processing-status"
-TAG_SOURCE_ETAG = "iff:source-etag"
-TAG_PROCESSED_KEY = "iff:processed-key"
-STATUS_PROCESSED = "processed"
-STATUS_SKIPPED = "skipped-duplicate"
-
-
-def _should_skip_duplicate_etl(s3: S3Client, raw_key: str, processed_key: str) -> bool:
-    """Skip ETL when processed output already exists for the same source ETag."""
-    if not s3.object_exists(processed_key):
-        return False
-    source_etag = s3.get_object_etag(raw_key)
-    processed_tags = s3.get_object_tags(processed_key)
-    return processed_tags.get(TAG_SOURCE_ETAG) == source_etag
-
 
 def etl_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """Lambda handler: validate raw S3 upload and write processed parquet."""
+    """Lambda handler: process dataset-ready manifest and publish infrastructure outputs."""
     _ = context
     settings = get_settings()
     s3 = S3Client(settings)
@@ -41,49 +26,18 @@ def etl_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     bucket, key = s3.parse_s3_event(event)
     logger.info("ETL triggered for s3://%s/%s", bucket, key)
 
-    processed_key = s3.processed_key(f"{Path(key).stem}.parquet")
-    if _should_skip_duplicate_etl(s3, key, processed_key):
-        s3.put_object_tags(
-            key,
-            {
-                TAG_PROCESSING_STATUS: STATUS_SKIPPED,
-                TAG_PROCESSED_KEY: processed_key,
-            },
-        )
-        logger.info("Skipping duplicate ETL for already-processed source etag: %s", key)
+    try:
+        result = run_infrastructure_etl_from_manifest(s3, key)
+    except (FileNotFoundError, ValueError) as exc:
+        logger.warning("Infrastructure ETL validation failed: %s", exc)
         return {
-            "statusCode": 200,
-            "body": json.dumps({"processed_key": processed_key, "skipped": True}),
+            "statusCode": 400,
+            "body": json.dumps({"status": "validation_error", "message": str(exc)}),
         }
-
-    source_etag = s3.get_object_etag(key)
-    with tempfile.TemporaryDirectory() as tmpdir:
-        local_raw = Path(tmpdir) / Path(key).name
-        s3.download_file(key, local_raw)
-        processed_local = Path(tmpdir) / f"{local_raw.stem}.parquet"
-        process_raw_file(local_raw, processed_local)
-
-        s3.upload_file(
-            processed_local,
-            processed_key,
-            tags={
-                TAG_SOURCE_ETAG: source_etag,
-                TAG_PROCESSING_STATUS: STATUS_PROCESSED,
-            },
-        )
-
-    s3.put_object_tags(
-        key,
-        {
-            TAG_PROCESSING_STATUS: STATUS_PROCESSED,
-            TAG_PROCESSED_KEY: processed_key,
-            TAG_SOURCE_ETAG: source_etag,
-        },
-    )
 
     return {
         "statusCode": 200,
-        "body": json.dumps({"processed_key": processed_key, "skipped": False}),
+        "body": result.model_dump_json(),
     }
 
 

@@ -97,6 +97,9 @@ INFRASTRUCTURE_CAUTION = (
     "not football-specific; Census 2011 denominators are stale where paired with later years."
 )
 
+DATASET_READY_VERSION: str = "v1"
+DATASET_READY_MANIFEST_KEY: str = "raw/dataset-ready.json"
+
 # Causal regression defaults (literature baseline: OLS with fixed effects for public panel data)
 REGRESSION_MIN_OBSERVATIONS: int = 10  # assumption: minimum rows for stable fit
 REGRESSION_CONFIDENCE_LEVEL: float = 0.95  # literature baseline: 95% CI

@@ -269,6 +269,25 @@ class InfrastructureSummary(BaseModel):
     denominator_is_stale: bool
 
 
+class DatasetReadyManifest(BaseModel):
+    """S3 trigger manifest listing all required raw inputs for infrastructure ETL."""
+
+    dataset_version: str
+    object_keys: list[str]
+
+
+class InfrastructureEtlResult(BaseModel):
+    """Outcome of an AWS infrastructure ETL run."""
+
+    status: Literal["processed", "skipped_duplicate", "ignored"]
+    manifest_key: str | None = None
+    source_fingerprint: str | None = None
+    processed_key: str | None = None
+    manifest_output_key: str | None = None
+    row_count: int | None = None
+    message: str = ""
+
+
 class DataQualityReport(BaseModel):
     """Non-blocking data-quality signals for a reproduced infrastructure dataset."""
 

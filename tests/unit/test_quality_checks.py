@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pandas as pd
 from tests.conftest import raw_fixture_root
 
@@ -32,3 +34,13 @@ def test_quality_report_detects_duplicate_state_rows() -> None:
     assert quality.rows_per_state_min == 1
     assert quality.rows_per_state_max == 2
     assert any("Duplicate" in warning for warning in quality.warnings)
+
+
+def test_quality_report_warns_when_reconciled_states_drop_from_join() -> None:
+    frame, report, _source_hashes = build_public_sports_infrastructure_frame(raw_fixture_root())
+    modified_report = replace(report, matched=[*report.matched, "Synthetic State"])
+
+    quality = build_data_quality_report(frame, modified_report, reference_year=2026)
+
+    assert "Synthetic State" not in frame["canonical_state_ut"].tolist()
+    assert any("dropped" in warning for warning in quality.warnings)

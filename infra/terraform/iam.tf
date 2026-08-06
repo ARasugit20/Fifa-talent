@@ -29,6 +29,16 @@ resource "aws_iam_role_policy" "etl_lambda" {
       },
       {
         Effect = "Allow"
+        Action = ["s3:ListBucket"]
+        Resource = aws_s3_bucket.data_lake.arn
+        Condition = {
+          StringLike = {
+            "s3:prefix" = ["raw/*", "processed/*", "results/*"]
+          }
+        }
+      },
+      {
+        Effect = "Allow"
         Action = [
           "s3:GetObject",
           "s3:GetObjectTagging",
@@ -40,10 +50,16 @@ resource "aws_iam_role_policy" "etl_lambda" {
         Effect = "Allow"
         Action = [
           "s3:PutObject",
+          "s3:GetObject",
           "s3:GetObjectTagging",
           "s3:PutObjectTagging"
         ]
         Resource = "${aws_s3_bucket.data_lake.arn}/processed/*"
+      },
+      {
+        Effect = "Allow"
+        Action = ["s3:PutObject"]
+        Resource = "${aws_s3_bucket.data_lake.arn}/results/*"
       }
     ]
   })

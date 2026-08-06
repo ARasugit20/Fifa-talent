@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote_plus
 
 import boto3
 from botocore.exceptions import ClientError
@@ -72,6 +73,12 @@ class S3Client:
             Tagging={"TagSet": tag_set},
         )
 
+    def get_object_text(self, key: str) -> str:
+        """Download an S3 object and return its UTF-8 text contents."""
+        response = self._client.get_object(Bucket=self.bucket, Key=key)
+        body: bytes = response["Body"].read()
+        return body.decode("utf-8")
+
     def download_file(self, key: str, local_path: Path) -> Path:
         """Download an S3 object to a local path."""
         local_path.parent.mkdir(parents=True, exist_ok=True)
@@ -106,8 +113,14 @@ class S3Client:
     def raw_key(self, source: str, date_str: str, filename: str) -> str:
         return f"{RAW_PREFIX}/{source}/{date_str}/{filename}"
 
+    def processed_infrastructure_key(self) -> str:
+        return f"{PROCESSED_PREFIX}/public_sports_infrastructure.parquet"
+
     def processed_key(self, filename: str) -> str:
         return f"{PROCESSED_PREFIX}/{filename}"
+
+    def results_artifact_key(self, relative_path: str) -> str:
+        return f"{RESULTS_PREFIX}/{relative_path}"
 
     def results_key(self, scenario: str, filename: str) -> str:
         return f"{RESULTS_PREFIX}/{scenario}/{filename}"
@@ -116,5 +129,5 @@ class S3Client:
         """Extract bucket and key from an S3 event notification."""
         record = event["Records"][0]
         bucket = record["s3"]["bucket"]["name"]
-        key = record["s3"]["object"]["key"]
+        key = unquote_plus(record["s3"]["object"]["key"])
         return bucket, key

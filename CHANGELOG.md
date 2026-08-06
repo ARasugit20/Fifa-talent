@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- **Phase 3 Lambda pipeline alignment** — Manifest-triggered four-source infrastructure ETL on `raw/dataset-ready.json`, shared `write_reproduce_artifacts()` for local/AWS parity, provenance SHA-256 fingerprint idempotency, Glue `public_sports_infrastructure` table, moto integration tests, and updated deploy documentation.
 - **Phase 2 pipeline gaps** — CLI `--skip-*` reproduce flags, `iff-provenance` helper commands, Lambda S3 tagging/idempotency, Terraform cost/error alarms, and docs for metrics/architecture.
 - **Runtime quality scorecard** — `iff-reproduce` now writes a non-blocking data-quality report and a state/UT reconciliation CSV, both referenced by the run manifest.
 - **Simulation assumption registry** — Simulation JSON and Parquet outputs now snapshot versioned scenario and config assumptions; see `docs/simulation_assumptions.md`.
@@ -12,6 +13,7 @@
 - **Documentation** — `docs/data_inventory.md`; updated `docs/data_availability_note.md` and `docs/data_provenance.md`.
 
 ### Changed
+- **AWS ETL** — Replaced legacy per-CSV `process_raw_file()` Lambda path with manifest-triggered infrastructure pipeline aligned to `iff-reproduce`.
 - **`iff-reproduce`** — Builds state/UT public sports infrastructure descriptive outputs only; no synthetic fixture fallback.
 - **Scope labeling** — Processed metrics are explicitly not football-specific; Census 2011 denominators flagged stale when paired with later reporting years.
 
