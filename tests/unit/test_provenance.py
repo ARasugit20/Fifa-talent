@@ -9,6 +9,8 @@ import pytest
 from tests.conftest import raw_fixture_root
 
 from india_football_funnel.data.provenance import (
+    RawDatasetProvenance,
+    discover_validated_raw_files,
     load_provenance,
     sha256_file,
     validate_raw_file_with_provenance,
@@ -60,3 +62,14 @@ def test_sha256_file_is_stable() -> None:
     raw_file = raw_fixture_root() / "census/state_population_2011.csv"
     provenance = load_provenance(raw_file)
     assert sha256_file(raw_file) == provenance.sha256
+
+
+def test_discover_validated_raw_files_skips_provenance_metadata() -> None:
+    validated = discover_validated_raw_files(raw_fixture_root() / "mdsd")
+
+    assert len(validated) == 2
+    assert all(isinstance(provenance, RawDatasetProvenance) for _path, provenance in validated)
+
+
+def test_discover_validated_raw_files_allows_missing_source_directory(tmp_path: Path) -> None:
+    assert discover_validated_raw_files(tmp_path / "missing") == []

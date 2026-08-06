@@ -95,6 +95,18 @@ class SimulationYearResult(BaseModel):
     mean_participation_rate: float
 
 
+class Assumption(BaseModel):
+    """One documented input or derived value used by a simulation run."""
+
+    key: str
+    value: float | int | str | bool | None
+    unit: str
+    source: Literal["config", "scenario", "derived"]
+    rationale: str
+    sensitivity_low: float | None = None
+    sensitivity_high: float | None = None
+
+
 class SimulationResult(BaseModel):
     """Full Monte Carlo simulation output.
 
@@ -110,6 +122,8 @@ class SimulationResult(BaseModel):
     final_medals_std: float
     assumption_based: bool = True
     uncalibrated: bool = True
+    assumptions: list[Assumption] = Field(default_factory=list)
+    assumption_registry_version: str = "v1"
 
 
 class FunnelMetricsSummary(BaseModel):
@@ -255,6 +269,21 @@ class InfrastructureSummary(BaseModel):
     denominator_is_stale: bool
 
 
+class DataQualityReport(BaseModel):
+    """Non-blocking data-quality signals for a reproduced infrastructure dataset."""
+
+    census_staleness_years: int = Field(ge=0)
+    denominator_year: int
+    row_count: int = Field(ge=0)
+    rows_per_state_min: int = Field(ge=0)
+    rows_per_state_max: int = Field(ge=0)
+    missing_canonical_states: list[str] = Field(default_factory=list)
+    states_dropped_from_join: list[str] = Field(default_factory=list)
+    stale_denominator_count: int = Field(ge=0)
+    warnings: list[str] = Field(default_factory=list)
+    blocking: bool = False
+
+
 class RunManifest(BaseModel):
     """Reproducibility manifest for a local infrastructure pipeline run."""
 
@@ -263,4 +292,6 @@ class RunManifest(BaseModel):
     reporting_periods: list[str]
     source_hashes: dict[str, str]
     state_reconciliation: dict[str, list[str] | dict[str, str]]
+    state_mapping_version: str
     processed_output: str
+    data_quality: DataQualityReport | None = None

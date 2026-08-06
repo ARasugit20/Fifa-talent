@@ -109,6 +109,8 @@ PARTICIPATION_GROWTH_RATE_MEAN: float = 0.03  # assumption: annual youth partici
 PARTICIPATION_GROWTH_RATE_STD: float = 0.01  # assumption: growth uncertainty
 BUDGET_EFFECT_MEAN: float = 0.06  # assumption: top-quartile budget-per-capita uplift
 BUDGET_EFFECT_STD: float = 0.02  # assumption: intervention variance
+ASSUMPTION_REGISTRY_VERSION: str = "v1"
+STATE_MAPPING_VERSION: str = "v1"
 
 # S3 layout (env-driven resource names)
 RAW_PREFIX: str = "raw"

@@ -13,6 +13,7 @@ from india_football_funnel.config import (
     PROCESSED_DATA_DIR,
     RAW_DATA_DIR,
     REQUIRED_RAW_FILES,
+    STATE_MAPPING_VERSION,
 )
 from india_football_funnel.data.parsers.census import parse_state_denominators
 from india_football_funnel.data.parsers.khelo_india import parse_financial_assistance
@@ -20,7 +21,11 @@ from india_football_funnel.data.parsers.mdsd import parse_grantee_amounts, parse
 from india_football_funnel.data.provenance import validate_raw_file_with_provenance
 from india_football_funnel.data.schema import PublicSportsInfrastructureSchema
 from india_football_funnel.data.state_names import StateReconciliationReport
-from india_football_funnel.models import PublicSportsInfrastructureRecord, RunManifest
+from india_football_funnel.models import (
+    DataQualityReport,
+    PublicSportsInfrastructureRecord,
+    RunManifest,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +175,7 @@ def build_run_manifest(
     report: StateReconciliationReport,
     source_hashes: dict[str, str],
     processed_output: Path,
+    data_quality: DataQualityReport | None = None,
 ) -> RunManifest:
     """Create a reproducibility manifest for the infrastructure pipeline run."""
     return RunManifest(
@@ -183,5 +189,47 @@ def build_run_manifest(
             "unmatched": sorted(report.unmatched),
             "excluded": sorted(report.excluded),
         },
+        state_mapping_version=STATE_MAPPING_VERSION,
         processed_output=str(processed_output),
+        data_quality=data_quality,
     )
+
+
+def write_state_reconciliation_report(
+    report: StateReconciliationReport,
+    output_path: Path,
+) -> Path:
+    """Write a compact audit trail for state/UT reconciliation outcomes."""
+    rows: list[dict[str, str]] = []
+    aliased_targets = set(report.aliased.values())
+    for state in sorted(report.matched):
+        aliases = sorted(alias for alias, target in report.aliased.items() if target == state)
+        rows.append(
+            {
+                "canonical_state_ut": state,
+                "status": "aliased" if state in aliased_targets else "matched",
+                "alias_from": ";".join(aliases),
+            }
+        )
+    rows.extend(
+        {
+            "canonical_state_ut": state,
+            "status": "unmatched",
+            "alias_from": "",
+        }
+        for state in sorted(report.unmatched)
+    )
+    rows.extend(
+        {
+            "canonical_state_ut": state,
+            "status": "excluded",
+            "alias_from": "",
+        }
+        for state in sorted(report.excluded)
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(rows, columns=["canonical_state_ut", "status", "alias_from"]).to_csv(
+        output_path,
+        index=False,
+    )
+    return output_path

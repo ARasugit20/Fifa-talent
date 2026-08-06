@@ -50,11 +50,14 @@ def test_reproduce_writes_outputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     assert (processed_dir / "public_sports_infrastructure.parquet").exists()
     assert (processed_dir / "infrastructure_by_state.csv").exists()
     assert (results_dir / "analysis" / "infrastructure_summaries.json").exists()
+    assert (results_dir / "data_quality_report.json").exists()
+    assert (results_dir / "state_reconciliation_report.csv").exists()
     assert (results_dir / "run_manifest.json").exists()
 
     manifest = json.loads((results_dir / "run_manifest.json").read_text(encoding="utf-8"))
     assert manifest["row_count"] == 10
     assert "not football-specific" in manifest["caveat"]
+    assert manifest["data_quality"]["stale_denominator_count"] == 10
 
 
 def test_reproduce_fails_without_required_raw_files(

@@ -95,7 +95,34 @@ def test_simulation_outputs_include_uncalibrated_labels(tmp_path: Path) -> None:
     summary = json.loads(json_path.read_text(encoding="utf-8"))
     assert summary["assumption_based"] is True
     assert summary["uncalibrated"] is True
+    assert summary["assumption_registry_version"] == "v1"
+    assert {assumption["key"] for assumption in summary["assumptions"]} >= {
+        "baseline_participation_rate",
+        "PARTICIPATION_GROWTH_RATE_MEAN",
+        "BUDGET_EFFECT_MEAN",
+    }
     assert parquet_path.exists()
+
+
+def test_simulation_clips_zero_participation_and_non_negative_medals() -> None:
+    params = baseline_scenario(n_runs=10, years=3).model_copy(
+        update={"baseline_participation_rate": 0.0, "baseline_medals_per_participant": 0.0}
+    )
+
+    paths = run_monte_carlo_paths(params)
+
+    assert np.all(paths >= 0.0)
+    assert np.all(paths == 0.0)
+
+
+def test_simulation_accepts_extreme_medals_per_participant() -> None:
+    params = baseline_scenario(n_runs=5, years=2).model_copy(
+        update={"baseline_medals_per_participant": 1_000_000.0}
+    )
+
+    result = run_simulation(params)
+
+    assert result.final_medals_mean >= 0.0
 
 
 def test_load_simulation_summary_without_label_fields(tmp_path: Path) -> None:

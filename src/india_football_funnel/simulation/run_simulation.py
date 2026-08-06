@@ -10,8 +10,9 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from india_football_funnel.config import RESULTS_DATA_DIR
+from india_football_funnel.config import ASSUMPTION_REGISTRY_VERSION, RESULTS_DATA_DIR
 from india_football_funnel.models import ScenarioParams, SimulationResult, SimulationYearResult
+from india_football_funnel.simulation.assumption_registry import build_assumption_manifest
 from india_football_funnel.simulation.talent_flow_model import run_monte_carlo_paths
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,8 @@ def aggregate_simulation_results(
         final_medals_std=float(np.std(final_values)),
         assumption_based=True,
         uncalibrated=True,
+        assumptions=build_assumption_manifest(params),
+        assumption_registry_version=ASSUMPTION_REGISTRY_VERSION,
     )
 
 
@@ -75,6 +78,7 @@ def simulation_result_to_frame(result: SimulationResult) -> pd.DataFrame:
             "final_medals_std": result.final_medals_std,
             "assumption_based": result.assumption_based,
             "uncalibrated": result.uncalibrated,
+            "assumption_registry_version": result.assumption_registry_version,
         }
         for year_result in result.annual_results
     ]

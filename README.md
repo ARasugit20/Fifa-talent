@@ -76,6 +76,8 @@ See also: [cost estimate](docs/cost_estimate.md) · [AWS deploy guide](docs/aws_
 
 Only verified public sources are used in v1. Full source notes live in
 [Data Provenance](docs/data_provenance.md).
+Each `make reproduce` run also emits a non-blocking data quality scorecard and reconciliation
+audit; simulation outputs record a versioned [assumption registry](docs/simulation_assumptions.md).
 
 | Source | Use |
 |--------|-----|

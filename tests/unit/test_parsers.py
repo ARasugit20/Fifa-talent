@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from tests.conftest import raw_fixture_root
 
 from india_football_funnel.data.parsers.census import parse_state_denominators
 from india_football_funnel.data.parsers.khelo_india import parse_financial_assistance
 from india_football_funnel.data.parsers.mdsd import parse_grantee_amounts, parse_state_wise_progress
+from india_football_funnel.data.provenance import load_provenance
 from india_football_funnel.data.state_names import StateReconciliationReport
 
 
@@ -60,3 +63,26 @@ def test_unmapped_state_name_fails_reconciliation() -> None:
     report = StateReconciliationReport()
     assert reconcile_state_name("Unknown Territory", report) is None
     assert report.unmatched == ["Unknown Territory"]
+
+
+@pytest.mark.parametrize(
+    ("parser", "filename", "columns"),
+    [
+        (parse_state_wise_progress, "progress.csv", "state,projects_total\nKerala,1\n"),
+        (parse_grantee_amounts, "amounts.csv", "state,amount_sanctioned\nKerala,1\n"),
+        (parse_financial_assistance, "assistance.csv", "state,financial_assistance\nKerala,1\n"),
+        (parse_state_denominators, "census.csv", "state,denominator_value\nKerala,1\n"),
+    ],
+)
+def test_parsers_reject_missing_required_columns(
+    parser: object,
+    filename: str,
+    columns: str,
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / filename
+    path.write_text(columns, encoding="utf-8")
+    provenance = load_provenance(raw_fixture_root() / "census/state_population_2011.csv")
+
+    with pytest.raises(ValueError, match="missing required columns"):
+        parser(path, provenance=provenance)  # type: ignore[operator]
